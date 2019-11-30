@@ -3,6 +3,7 @@
 LINUX: First run this program then run VMPK. In VMPK, go into connections, and use ALSA and RtMidiIn Client:0
 """
 import argparse
+import numpy as np
 import json
 import pathlib
 import sys
@@ -43,11 +44,13 @@ class Visualizer(QMainWindow):
         self.height = 500
         self.setWindowTitle(self.title)
         self.setGeometry(self.top, self.left, self.width, self.height)
+        # TODO: set background to black
         self.show()
         self.suit = suit
+        self.off_color = QColor(0, 0, 0, 10)
 
         self.num_channels = len(suit['channels'])
-        self.on_channels = dict([(channel_idx, []) for channel_idx in range(self.num_channels)])
+        self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -58,20 +61,20 @@ class Visualizer(QMainWindow):
             for channel_idx, channel_description in enumerate(self.suit['channels']):
                 if 'lines' in channel_description:
                     for line in channel_description['lines']:
-                        if channel_idx in self.on_channels[suit_idx]:
+                        if self.on_channels[suit_idx, channel_idx]:
                             r, g, b = line['color']
                             color = QColor(r, g, b, 255)
                         else:
-                            color = QtCore.Qt.black
+                            color = self.off_color
                         painter.setPen(color)
                         painter.drawLine(sx + line['x1'], sy + line['y1'], sx + line['x2'], sy + line['y2'])
                 if 'circles' in channel_description:
                     for circle in channel_description['circles']:
-                        if channel_idx in self.on_channels[suit_idx]:
+                        if self.on_channels[suit_idx, channel_idx]:
                             r, g, b = circle['color']
                             color = QColor(r, g, b, 255)
                         else:
-                            color = QtCore.Qt.black
+                            color = self.off_color
                         painter.setPen(color)
                         painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
 
@@ -83,17 +86,18 @@ class Visualizer(QMainWindow):
 
         channel_number = pitch % self.num_channels
         suit_number = pitch // self.num_channels
-        print(suit_number, channel_number)
 
-        if command == 128:  # off
-            if channel_number in self.on_channels[suit_number]:
-                self.on_channels[suit_number].pop()
-        elif command == 144:  # on
-            self.on_channels[suit_number].append(channel_number)
-        else:
-            raise ValueError("not a note or off code!")
+        if 0 <= suit_number <= num_suits and 0 <= channel_number <= 7:
+            if command == 128:  # off
+                print(channel_number, suit_number, 'off')
+                self.on_channels[suit_number, channel_number] = 0
+            elif command == 144:  # on
+                print(channel_number, suit_number, 'on')
+                self.on_channels[suit_number, channel_number] = 1
+            else:
+                raise ValueError("not a note or off code!")
 
-        self.update()
+            self.update()
 
 
 class MidiToXBee:
