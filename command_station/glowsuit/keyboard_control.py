@@ -47,7 +47,7 @@ class Visualizer(QMainWindow):
         # TODO: set background to black
         self.show()
         self.suit = suit
-        self.off_color = QColor(0, 0, 0, 10)
+        self.off_color = QColor(0, 0, 0, 50)
 
         self.num_channels = len(suit['channels'])
         self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
@@ -95,7 +95,7 @@ class Visualizer(QMainWindow):
                 print(channel_number, suit_number, 'on')
                 self.on_channels[suit_number, channel_number] = 1
             else:
-                raise ValueError("not a note or off code!")
+                return # just ignore any other types of midi messages
 
             self.update()
 
