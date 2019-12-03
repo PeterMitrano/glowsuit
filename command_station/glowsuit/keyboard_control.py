@@ -3,35 +3,19 @@
 LINUX: First run this program then run VMPK. In VMPK, go into connections, and use ALSA and RtMidiIn Client:0
 """
 import argparse
-import numpy as np
 import json
 import pathlib
 import sys
-from dataclasses import dataclass
 from typing import List
 
-from PyQt5 import QtCore
+import numpy as np
+import serial
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from rtmidi.midiutil import open_midiinput
 from xbee import XBee
 
 num_suits = 6
-
-
-@dataclass()
-class LineData:
-    x0: int
-    y0: int
-    x1: int
-    y1: int
-
-
-@dataclass()
-class Circle:
-    x0: int
-    y0: int
-    r: int
 
 
 class Visualizer(QMainWindow):
@@ -95,20 +79,20 @@ class Visualizer(QMainWindow):
                 print(channel_number, suit_number, 'on')
                 self.on_channels[suit_number, channel_number] = 1
             else:
-                return # just ignore any other types of midi messages
+                return  # just ignore any other types of midi messages
 
             self.update()
 
 
 class MidiToXBee:
-    def __init__(self, xbee_port, viz):
-        self.xbee = XBee(xbee_port)
+    def __init__(self, xbee_serial, viz):
+        self.xbee = XBee(xbee_serial)
         self.viz = viz
 
     def __call__(self, event, data=None):
         message, _ = event
         self.viz.at(message)
-        # self.xbee.at(command=message)
+        self.xbee.send('tx', frame_id='A', command='MESSAGE')
 
 
 def main():
@@ -129,7 +113,8 @@ def main():
     app = QApplication(sys.argv)
 
     viz = Visualizer(suit)
-    midi_to_xbee = MidiToXBee(args.xbee_port, viz)
+    ser = serial.Serial(args.xbee_port, 9600)
+    midi_to_xbee = MidiToXBee(ser, viz)
     midiin.set_callback(midi_to_xbee)
 
     return_code = app.exec()
