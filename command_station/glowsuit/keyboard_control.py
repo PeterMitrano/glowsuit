@@ -6,7 +6,6 @@ import argparse
 import json
 import pathlib
 import sys
-from typing import List
 
 import numpy as np
 import serial
@@ -19,7 +18,7 @@ num_suits = 6
 
 
 class Visualizer(QMainWindow):
-    def __init__(self, suit):
+    def __init__(self, suit, num_channels: int):
         super().__init__()
         self.title = "Glowsuit Visualizer"
         self.top = 50
@@ -32,8 +31,8 @@ class Visualizer(QMainWindow):
         self.show()
         self.suit = suit
         self.off_color = QColor(0, 0, 0, 50)
+        self.num_channels = num_channels
 
-        self.num_channels = len(suit['channels'])
         self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
 
     def paintEvent(self, event):
@@ -62,15 +61,7 @@ class Visualizer(QMainWindow):
                         painter.setPen(color)
                         painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
 
-    def at(self, message: List[int]):
-        command = message[0]
-
-        # FIXME: magic constant
-        pitch = message[1] - 60
-
-        channel_number = pitch % self.num_channels
-        suit_number = pitch // self.num_channels
-
+    def at(self, suit_number: int, command: int, channel_number: int):
         if 0 <= suit_number <= num_suits and 0 <= channel_number <= 7:
             if command == 128:  # off
                 print(channel_number, suit_number, 'off')
@@ -85,25 +76,35 @@ class Visualizer(QMainWindow):
 
 
 class MidiToXBee:
-    def __init__(self, xbee_serial, viz):
+    def __init__(self, xbee_serial: serial.Serial,
+                 viz: Visualizer,
+                 num_channels: int):
         self.xbee = XBee(xbee_serial)
         self.viz = viz
+        self.num_channels = num_channels
 
     def __call__(self, event, data=None):
         message, _ = event
-        self.viz.at(message)
-        self.xbee.send('tx', frame_id='A', command='MESSAGE')
+        command = message[0]
+        pitch = message[1] - 60
+        channel_number = pitch % self.num_channels
+        suit_number = pitch // self.num_channels
+        xbee_data = [command, channel_number]
+
+        self.viz.at(suit_number, command, channel_number)
+        self.xbee.send('tx', frame_id='\x01', dest_addr=suit_number.to_bytes(2, 'big'), data=bytearray(xbee_data))
 
 
 def main():
     parser = argparse.ArgumentParser('take MIDI input from a program like VPMK and send it to an XBEE')
     parser.add_argument('suit_file', type=pathlib.Path, help='json file describing suit visualization')
-    parser.add_argument('--xbee-port', type=str, default='/dev/ttyUSB0')
+    parser.add_argument('--xbee-port', type=str, default='/dev/ttyUSB1')
     parser.add_argument('--keyboard-port', type=int, default=0)
 
     args = parser.parse_args()
 
     suit = json.load(args.suit_file.open('r'))
+    num_channels = len(suit['channels'])
 
     try:
         midiin, port_name = open_midiinput(args.keyboard_port)
@@ -112,9 +113,9 @@ def main():
 
     app = QApplication(sys.argv)
 
-    viz = Visualizer(suit)
-    ser = serial.Serial(args.xbee_port, 9600)
-    midi_to_xbee = MidiToXBee(ser, viz)
+    viz = Visualizer(suit, num_channels)
+    ser = serial.Serial(args.xbee_port, 57600)
+    midi_to_xbee = MidiToXBee(ser, viz, num_channels)
     midiin.set_callback(midi_to_xbee)
 
     return_code = app.exec()

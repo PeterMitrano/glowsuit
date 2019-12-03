@@ -2,122 +2,90 @@
 #include <SoftwareSerial.h>
 
 // Define SoftSerial TX/RX pins
-uint8_t ssRX = A2;
-uint8_t ssTX = A3;
+uint8_t ssRX = A4;
+uint8_t ssTX = A2;
 // Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
 SoftwareSerial nss(ssRX, ssTX);
 
 XBee xbee = XBee();
 XBeeResponse response = XBeeResponse();
-Rx64Response rx64 = Rx64Response();
+Rx16Response rx16 = Rx16Response();
 
 constexpr int led_pin = 13;
 constexpr int num_channels = 8;
 
 constexpr  int channel_to_pin[8] = {
-  32,  // 0
-  1,   // 1
-  2,   // 2
-  9,   // 3
-  10,  // 4
-  11,  // 5
-  12,  // 6
-  13,  // 7  
+  2,  // 0
+  3,   // 1
+  4,   // 2
+  5,   // 3
+  6,  // 4
+  7,  // 5
+  8,  // 6
+  9,  // 7
 };
 
 uint8_t suit_number = 0;
 
+constexpr int ni_req_buff_len = 8;
+constexpr uint8_t ni_req_buff[ni_req_buff_len] = {126, 0, 4, 9, 1, 77, 89, 79};
+constexpr int ni_res_buff_len = 11;
 
-// node information
-uint8_t node_id_command[] = {'N','I'};
-
+uint8_t get_suit_number();
 void flashLed(unsigned int on_time);
 
 void setup() {
-  Serial.begin(9600);
-  xbee.setSerial(Serial);
   pinMode(led_pin, OUTPUT);
-
-  // TODO: get the suit number from the xbee Node ID
-  AtCommandRequest niRequest = AtCommandRequest(node_id_command);
-  AtCommandResponse niResponse = AtCommandResponse();
-
-  // send the command
-  xbee.send(niRequest);
-
-  // wait up to 5 seconds for the status response
-  if (xbee.readPacket(5000)) {
-    // got a response!
-
-    // should be an AT command response
-    if (xbee.getResponse().getApiId() == AT_COMMAND_RESPONSE) {
-      xbee.getResponse().getAtCommandResponse(niResponse);
-
-      if (niResponse.isOk()) {
-        nss.print("Command [");
-        nss.print(niResponse.getCommand()[0]);
-        nss.print(niResponse.getCommand()[1]);
-        nss.println("] was successful!");
-
-        if (niResponse.getValueLength() > 0) {
-          nss.print("Command value length is ");
-          nss.println(niResponse.getValueLength(), DEC);
-
-          nss.print("Command value: ");
-          suit_number = *niResponse.getValue();
-          for (int i = 0; i < niResponse.getValueLength(); i++) {
-            nss.print(niResponse.getValue()[i], HEX);
-            nss.print(" ");
-          }
-
-          nss.println("");
-        }
-      } 
-      else {
-        nss.print("Command return error code: ");
-        nss.println(niResponse.getStatus(), HEX);
-      }
-    } else {
-      nss.print("Expected AT response but got ");
-      nss.print(xbee.getResponse().getApiId(), HEX);
-    }   
-  } else {
-    // at command failed
-    if (xbee.getResponse().isError()) {
-      nss.print("Error reading packet.  Error code: ");  
-      nss.println(xbee.getResponse().getErrorCode());
-    } 
-    else {
-      nss.print("No response from radio");  
-    }
+  for (auto const pin : channel_to_pin) {
+    pinMode(pin, OUTPUT);
   }
+
+  Serial.begin(57600);
+  nss.begin(9600);
+
+  xbee.setSerial(Serial);
+
+  suit_number = get_suit_number();
+  nss.print("Suit number: ");
+  nss.println(suit_number);
+
+  flashLed(500);
 }
 
 void loop() {
   xbee.readPacket();
 
   if (xbee.getResponse().isAvailable()) {
-    if (xbee.getResponse().getApiId() == RX_64_RESPONSE) {
-      xbee.getResponse().getRx64Response(rx64);
-      
-      uint8_t command = rx64.getData(0);
-      uint8_t pitch = rx64.getData(1);
-      const uint8_t dest_suit_number = pitch / num_channels;
-      const uint8_t dest_channel = pitch % num_channels;
+    if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
+      xbee.getResponse().getRx16Response(rx16);
 
-      if (command == 128) { // off 
-        digitalWrite(dest_channel, LOW);
+      uint8_t command = rx16.getData(0);
+      uint8_t dest_channel = rx16.getData(1);
+      nss.println(command);
+      nss.println(dest_channel);
+      if (command == 128) { // off
+        digitalWrite(channel_to_pin[dest_channel], LOW);
       }
       else if (command == 144) { // on
-        digitalWrite(dest_channel, HIGH);
-      }     
-      flashLed(10);
+        digitalWrite(channel_to_pin[dest_channel], HIGH);
+      }
+
     } else {
       flashLed(50);
+      nss.println("not 16 rx");
     }
   } else if (xbee.getResponse().isError()) {
-    flashLed(25);
+    nss.println("error");
   }
+}
+
+uint8_t get_suit_number() {
+  Serial.write(ni_req_buff, ni_req_buff_len);
+  while (Serial.available() < ni_res_buff_len);
+  uint8_t ni_res_buff[ni_res_buff_len];
+  Serial.readBytes(ni_res_buff, ni_res_buff_len);
+  const int suit_number = ni_res_buff[ni_res_buff_len - 2] << 8 + ni_res_buff[ni_res_buff_len - 1];
+  return suit_number;
 }
 
 void flashLed(unsigned int on_time) {
