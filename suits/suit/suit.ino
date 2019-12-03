@@ -61,8 +61,6 @@ void loop() {
 
       uint8_t command = rx16.getData(0);
       uint8_t dest_channel = rx16.getData(1);
-      nss.println(command);
-      nss.println(dest_channel);
       if (command == 128) { // off
         digitalWrite(channel_to_pin[dest_channel], LOW);
       }

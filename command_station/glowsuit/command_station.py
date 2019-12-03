@@ -62,12 +62,12 @@ class Visualizer(QMainWindow):
                         painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
 
     def at(self, suit_number: int, command: int, channel_number: int):
-        if 0 <= suit_number <= num_suits and 0 <= channel_number <= 7:
+        if 1 <= suit_number <= num_suits and 0 <= channel_number <= 7:
             if command == 128:  # off
-                print(channel_number, suit_number, 'off')
+                # print(channel_number, suit_number, 'off')
                 self.on_channels[suit_number, channel_number] = 0
             elif command == 144:  # on
-                print(channel_number, suit_number, 'on')
+                # print(channel_number, suit_number, 'on')
                 self.on_channels[suit_number, channel_number] = 1
             else:
                 return  # just ignore any other types of midi messages
@@ -88,7 +88,7 @@ class MidiToXBee:
         command = message[0]
         pitch = message[1] - 60
         channel_number = pitch % self.num_channels
-        suit_number = pitch // self.num_channels
+        suit_number = pitch // self.num_channels + 1
         xbee_data = [command, channel_number]
 
         self.viz.at(suit_number, command, channel_number)
