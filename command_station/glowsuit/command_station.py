@@ -28,12 +28,11 @@ class Visualizer(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(self.top, self.left, self.width, self.height)
         # TODO: set background to black
-        self.show()
         self.suit = suit
         self.off_color = QColor(0, 0, 0, 50)
         self.num_channels = num_channels
-
         self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
+        self.show()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -65,10 +64,10 @@ class Visualizer(QMainWindow):
         if 1 <= suit_number <= num_suits and 0 <= channel_number <= 7:
             if command == 128:  # off
                 # print(channel_number, suit_number, 'off')
-                self.on_channels[suit_number, channel_number] = 0
+                self.on_channels[suit_number - 1, channel_number] = 0
             elif command == 144:  # on
                 # print(channel_number, suit_number, 'on')
-                self.on_channels[suit_number, channel_number] = 1
+                self.on_channels[suit_number - 1, channel_number] = 1
             else:
                 return  # just ignore any other types of midi messages
 
@@ -118,7 +117,10 @@ def main():
     midi_to_xbee = MidiToXBee(ser, viz, num_channels)
     midiin.set_callback(midi_to_xbee)
 
-    return_code = app.exec()
+    try:
+        return_code = app.exec()
+    except KeyboardException:
+        pass
 
     midiin.close_port()
 
