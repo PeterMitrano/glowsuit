@@ -49,7 +49,20 @@ void setup() {
   nss.print("Suit number: ");
   nss.println(suit_number);
 
+  for (auto const pin : channel_to_pin) {
+    digitalWrite(pin, HIGH);
+  }
+  delay(1000);
   flashLed(500);
+  delay(1000);
+  
+  for (auto const pin : channel_to_pin) {
+    digitalWrite(pin, LOW);
+  }
+
+  delay(1000);
+  flashLed(500);
+  delay(1000);
 }
 
 void loop() {
@@ -61,6 +74,11 @@ void loop() {
 
       uint8_t command = rx16.getData(0);
       uint8_t dest_channel = rx16.getData(1);
+      if (command == 128 and dest_channel == 8) { // all off
+        for (auto const pin : channel_to_pin) {
+          digitalWrite(pin, LOW);
+        }
+      }
       if (command == 128) { // off
         digitalWrite(channel_to_pin[dest_channel], LOW);
       }
