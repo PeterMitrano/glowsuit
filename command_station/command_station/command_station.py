@@ -13,7 +13,7 @@ import serial
 from PyQt5 import QtCore
 from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 from rtmidi.midiutil import open_midiinput
 from xbee import XBee
 
@@ -27,6 +27,9 @@ background-color: darkgray;
 
 
 class Visualizer(QMainWindow):
+
+    on_label_style = "QLabel { background-color : green;}"
+    off_label_style = "QLabel { background-color : red;}"
 
     def __init__(self, suit, num_channels: int):
         super().__init__()
@@ -48,7 +51,17 @@ class Visualizer(QMainWindow):
         self.front = True
         self.back = True
 
+        self.front_status = QLabel()
+
+        self.update_front_back_labels()
+
         self.show()
+
+    def update_front_back_labels(self):
+        if self.front:
+            self.front_status.setStyleSheet(self.on_label_style)
+        else:
+            self.front_status.setStyleSheet(self.on_label_style)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -84,6 +97,8 @@ class Visualizer(QMainWindow):
             # enable drawing of the front of the suits
             self.front = not self.front
             event.accept()
+
+            self.front_status.setStyleSheet()
         if event.key() == QtCore.Qt.Key_B and event.type() == QEvent.KeyPress:
             # enable drawing of the back of the suits
             self.back = not self.back
