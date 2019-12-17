@@ -6,9 +6,12 @@ import argparse
 import json
 import pathlib
 import sys
+from typing import Optional
 
 import numpy as np
 import serial
+from PyQt5 import QtCore
+from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from rtmidi.midiutil import open_midiinput
@@ -16,49 +19,76 @@ from xbee import XBee
 
 num_suits = 6
 
+appStyle = """
+QMainWindow{
+background-color: darkgray;
+}
+"""
+
 
 class Visualizer(QMainWindow):
+
     def __init__(self, suit, num_channels: int):
         super().__init__()
         self.title = "Glowsuit Visualizer"
-        self.top = 50
-        self.left = 50
-        self.width = 500
-        self.height = 500
+        self.offset_x = 10
+        self.offset_y = 10
+        self.suit_width = 100
+        self.width = num_suits * self.suit_width + self.offset_x * 2
+        self.height = 200
+        self.left = 1366 - self.width - 10
+        self.top = 10
         self.setWindowTitle(self.title)
-        self.setGeometry(self.top, self.left, self.width, self.height)
-        # TODO: set background to black
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setStyleSheet(appStyle)
         self.suit = suit
         self.off_color = QColor(0, 0, 0, 50)
         self.num_channels = num_channels
         self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
+        self.front = True
+        self.back = True
+
         self.show()
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         for suit_idx in range(num_suits):
-            sx = 50 + 100 * suit_idx
-            sy = 25
+            sx = self.offset_x + self.suit_width * suit_idx
+            sy = self.offset_y
             for channel_idx, channel_description in enumerate(self.suit['channels']):
                 if 'lines' in channel_description:
                     for line in channel_description['lines']:
+                        color = self.off_color
+                        r, g, b = line['color']
                         if self.on_channels[suit_idx, channel_idx]:
-                            r, g, b = line['color']
-                            color = QColor(r, g, b, 255)
-                        else:
-                            color = self.off_color
+                            if (self.back and line['back']) or (self.front and line['front']):
+                                color = QColor(r, g, b, 255)
                         painter.setPen(color)
                         painter.drawLine(sx + line['x1'], sy + line['y1'], sx + line['x2'], sy + line['y2'])
+
                 if 'circles' in channel_description:
                     for circle in channel_description['circles']:
+                        color = self.off_color
+                        r, g, b = circle['color']
                         if self.on_channels[suit_idx, channel_idx]:
-                            r, g, b = circle['color']
-                            color = QColor(r, g, b, 255)
-                        else:
-                            color = self.off_color
+                            if (self.back and circle['back']) or (self.front and circle['front']):
+                                color = QColor(r, g, b, 255)
                         painter.setPen(color)
                         painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Q:
+            self.deleteLater()
+        if event.key() == QtCore.Qt.Key_F and event.type() == QEvent.KeyPress:
+            # enable drawing of the front of the suits
+            self.front = not self.front
+            event.accept()
+        if event.key() == QtCore.Qt.Key_B and event.type() == QEvent.KeyPress:
+            # enable drawing of the back of the suits
+            self.back = not self.back
+            print(self.back)
+            event.accept()
 
     def at(self, suit_number: int, command: int, channel_number: int):
         if 1 <= suit_number <= num_suits and 0 <= channel_number <= 7:
@@ -74,11 +104,14 @@ class Visualizer(QMainWindow):
             self.update()
 
 
-class MidiToXBee:
-    def __init__(self, xbee_serial: serial.Serial,
+class MidiHandler:
+    def __init__(self, xbee_serial: Optional[serial.Serial],
                  viz: Visualizer,
                  num_channels: int):
-        self.xbee = XBee(xbee_serial)
+        if xbee_serial:
+            self.xbee = XBee(xbee_serial)
+        else:
+            self.xbee = None
         self.viz = viz
         self.num_channels = num_channels
 
@@ -91,13 +124,14 @@ class MidiToXBee:
         xbee_data = [command, channel_number]
 
         self.viz.at(suit_number, command, channel_number)
-        self.xbee.send('tx', frame_id='\x01', dest_addr=suit_number.to_bytes(2, 'big'), data=bytearray(xbee_data))
+        if self.xbee:
+            self.xbee.send('tx', frame_id='\x01', dest_addr=suit_number.to_bytes(2, 'big'), data=bytearray(xbee_data))
 
 
 def main():
     parser = argparse.ArgumentParser('take MIDI input from a program like VPMK and send it to an XBEE')
     parser.add_argument('suit_file', type=pathlib.Path, help='json file describing suit visualization')
-    parser.add_argument('--xbee-port', type=str, default='/dev/ttyUSB1')
+    parser.add_argument('--xbee-port', type=str, default=None)
     parser.add_argument('--keyboard-port', type=int, default=0)
 
     args = parser.parse_args()
@@ -113,13 +147,16 @@ def main():
     app = QApplication(sys.argv)
 
     viz = Visualizer(suit, num_channels)
-    ser = serial.Serial(args.xbee_port, 57600)
-    midi_to_xbee = MidiToXBee(ser, viz, num_channels)
-    midiin.set_callback(midi_to_xbee)
+    if args.xbee_port:
+        ser = serial.Serial(args.xbee_port, 57600)
+    else:
+        ser = None
+    midi_handler = MidiHandler(ser, viz, num_channels)
+    midiin.set_callback(midi_handler)
 
     try:
         return_code = app.exec()
-    except KeyboardException:
+    except KeyboardInterrupt:
         pass
 
     midiin.close_port()
