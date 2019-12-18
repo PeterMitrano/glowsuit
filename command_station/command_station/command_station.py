@@ -3,9 +3,11 @@
 LINUX: First run this program then run VMPK. In VMPK, go into connections, and use ALSA and RtMidiIn Client:0
 """
 import argparse
+import numpy as np
 import json
 import pathlib
 import sys
+from time import sleep, time
 from typing import Optional
 
 import serial
@@ -83,8 +85,17 @@ class MidiHandler:
             self.xbee = XBee(xbee_serial)
         else:
             self.xbee = None
-        self.viz = viz
+        if viz:
+            self.viz = viz
+            self.no_viz = False
+        else:
+            self.viz = None
+            self.no_viz = True
         self.num_channels = num_channels
+
+        # performance debugging
+        self.times = []
+        self.dts = []
 
     def __call__(self, event, data=None):
         message, _ = event
@@ -94,9 +105,14 @@ class MidiHandler:
         suit_number = pitch // self.num_channels + 1
         xbee_data = [command, channel_number]
 
-        self.viz.at(suit_number, command, channel_number)
+        if not self.no_viz:
+            self.viz.at(suit_number, command, channel_number)
         if self.xbee:
+            t0 = time()
             self.xbee.send('tx', frame_id='\x01', dest_addr=suit_number.to_bytes(2, 'big'), data=bytearray(xbee_data))
+            dt = time() - t0
+            self.times.append(t0)
+            self.dts.append(dt)
 
 
 def main():
@@ -104,6 +120,7 @@ def main():
     parser.add_argument('suit_file', type=pathlib.Path, help='json file describing suit visualization')
     parser.add_argument('--xbee-port', type=str, default=None)
     parser.add_argument('--keyboard-port', type=int, default=0)
+    parser.add_argument('--no-viz', action='store_true')
 
     args = parser.parse_args()
 
@@ -115,15 +132,18 @@ def main():
     except (EOFError, KeyboardInterrupt):
         sys.exit()
 
-    app = QApplication(sys.argv)
-    viz = Visualizer(suit, num_channels)
-    main_window = QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(main_window)
-    ui.verticalLayout.addWidget(viz)
-    main = MainUI(ui, viz)
-    main.setup_ui()
-    main_window.show()
+    if args.no_viz:
+        viz = None
+    else:
+        app = QApplication(sys.argv)
+        viz = Visualizer(suit, num_channels)
+        main_window = QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(main_window)
+        ui.verticalLayout.addWidget(viz)
+        main = MainUI(ui, viz)
+        main.setup_ui()
+        main_window.show()
 
     if args.xbee_port:
         ser = serial.Serial(args.xbee_port, 57600)
@@ -132,10 +152,17 @@ def main():
     midi_handler = MidiHandler(ser, viz, num_channels)
     midiin.set_callback(midi_handler)
 
-    try:
-        return_code = app.exec()
-    except KeyboardInterrupt:
-        pass
+    if args.no_viz:
+        while True:
+            sleep(10)
+            # print(midi_handler.times)
+            dts = midi_handler.dts
+            print(np.min(dts), np.max(dts), np.median(dts))
+    else:
+        try:
+            return_code = app.exec()
+        except KeyboardInterrupt:
+            pass
 
     midiin.close_port()
 
