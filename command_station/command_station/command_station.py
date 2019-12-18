@@ -8,115 +8,71 @@ import pathlib
 import sys
 from typing import Optional
 
-import numpy as np
 import serial
-from PyQt5 import QtCore
-from PyQt5.QtCore import QEvent
-from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from rtmidi.midiutil import open_midiinput
 from xbee import XBee
 
+from command_station_ui import Ui_MainWindow
+from visualizer import Visualizer
+
 num_suits = 6
 
-appStyle = """
-QMainWindow{
-background-color: darkgray;
-}
-"""
+
+def front_status_clicked(self):
+    self.front = not self.front
 
 
-class Visualizer(QMainWindow):
+def back_status_clicked(self):
+    self.back = not self.back
 
-    on_label_style = "QLabel { background-color : green;}"
-    off_label_style = "QLabel { background-color : red;}"
 
-    def __init__(self, suit, num_channels: int):
-        super().__init__()
-        self.title = "Glowsuit Visualizer"
-        self.offset_x = 10
-        self.offset_y = 10
-        self.suit_width = 100
-        self.width = num_suits * self.suit_width + self.offset_x * 2
-        self.height = 200
-        self.left = 1366 - self.width - 10
-        self.top = 10
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.setStyleSheet(appStyle)
-        self.suit = suit
-        self.off_color = QColor(0, 0, 0, 50)
-        self.num_channels = num_channels
-        self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
-        self.front = True
-        self.back = True
+class MainUI:
 
-        self.front_status = QLabel()
+    def __init__(self, ui: Ui_MainWindow, viz: Visualizer):
+        self.ui = ui
+        self.viz = viz
 
-        self.update_front_back_labels()
+        self.button_off_style = """
+        QPushButton {
+            background-color: #e83535;
+            color: #000000
+        }
+        QPushButton:pressed {
+            background-color: #ad1010;
+            color: #000000
+        }
+        """
+        self.button_on_style = """
+        QPushButton {
+            background-color: #58eb34;
+            color: #000000
+        }
+        QPushButton:pressed {
+            background-color: #34ba13;
+            color: #000000
+        }
+        """
 
-        self.show()
+    def setup_ui(self):
+        self.ui.front_button.setStyleSheet(self.button_on_style)
+        self.ui.back_button.setStyleSheet(self.button_on_style)
+        self.ui.front_button.clicked.connect(self.front_status_clicked)
+        self.ui.back_button.clicked.connect(self.back_status_clicked)
 
-    def update_front_back_labels(self):
-        if self.front:
-            self.front_status.setStyleSheet(self.on_label_style)
+    def front_status_clicked(self):
+        self.viz.front_status_clicked()
+        if self.viz.front:
+            self.ui.front_button.setStyleSheet(self.button_on_style)
         else:
-            self.front_status.setStyleSheet(self.on_label_style)
+            self.ui.front_button.setStyleSheet(self.button_off_style)
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        for suit_idx in range(num_suits):
-            sx = self.offset_x + self.suit_width * suit_idx
-            sy = self.offset_y
-            for channel_idx, channel_description in enumerate(self.suit['channels']):
-                if 'lines' in channel_description:
-                    for line in channel_description['lines']:
-                        color = self.off_color
-                        r, g, b = line['color']
-                        if self.on_channels[suit_idx, channel_idx]:
-                            if (self.back and line['back']) or (self.front and line['front']):
-                                color = QColor(r, g, b, 255)
-                        painter.setPen(color)
-                        painter.drawLine(sx + line['x1'], sy + line['y1'], sx + line['x2'], sy + line['y2'])
-
-                if 'circles' in channel_description:
-                    for circle in channel_description['circles']:
-                        color = self.off_color
-                        r, g, b = circle['color']
-                        if self.on_channels[suit_idx, channel_idx]:
-                            if (self.back and circle['back']) or (self.front and circle['front']):
-                                color = QColor(r, g, b, 255)
-                        painter.setPen(color)
-                        painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Q:
-            self.deleteLater()
-        if event.key() == QtCore.Qt.Key_F and event.type() == QEvent.KeyPress:
-            # enable drawing of the front of the suits
-            self.front = not self.front
-            event.accept()
-
-            self.front_status.setStyleSheet()
-        if event.key() == QtCore.Qt.Key_B and event.type() == QEvent.KeyPress:
-            # enable drawing of the back of the suits
-            self.back = not self.back
-            print(self.back)
-            event.accept()
-
-    def at(self, suit_number: int, command: int, channel_number: int):
-        if 1 <= suit_number <= num_suits and 0 <= channel_number <= 7:
-            if command == 128:  # off
-                # print(channel_number, suit_number, 'off')
-                self.on_channels[suit_number - 1, channel_number] = 0
-            elif command == 144:  # on
-                # print(channel_number, suit_number, 'on')
-                self.on_channels[suit_number - 1, channel_number] = 1
-            else:
-                return  # just ignore any other types of midi messages
-
-            self.update()
+    def back_status_clicked(self):
+        self.viz.back_status_clicked()
+        if self.viz.back:
+            self.ui.back_button.setStyleSheet(self.button_on_style)
+        else:
+            self.ui.back_button.setStyleSheet(self.button_off_style)
 
 
 class MidiHandler:
@@ -160,8 +116,15 @@ def main():
         sys.exit()
 
     app = QApplication(sys.argv)
-
     viz = Visualizer(suit, num_channels)
+    main_window = QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(main_window)
+    ui.verticalLayout.addWidget(viz)
+    main = MainUI(ui, viz)
+    main.setup_ui()
+    main_window.show()
+
     if args.xbee_port:
         ser = serial.Serial(args.xbee_port, 57600)
     else:
