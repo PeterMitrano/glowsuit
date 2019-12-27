@@ -1,3 +1,4 @@
 *.gz
+cmake-build-debug
 env.yaml
 .idea

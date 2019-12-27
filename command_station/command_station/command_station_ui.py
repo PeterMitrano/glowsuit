@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'command_station.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(233, 180)
+        MainWindow.resize(250, 180)
         MainWindow.setStyleSheet("background-color: rgb(0, 0, 0);\n"
 "color: rgb(209, 209, 209);")
         self.main = QtWidgets.QWidget(MainWindow)

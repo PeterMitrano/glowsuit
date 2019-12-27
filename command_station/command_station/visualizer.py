@@ -31,9 +31,9 @@ class Visualizer(QWidget):
         self.height = 200
         self.left = 1366 - self.width - 10
         self.top = 10
-        self.setGeometry(self.left, self.top, self.width, self.height)
         self.suit = suit
-        self.off_color = QColor(0, 0, 0, 50)
+        self.setMinimumSize(self.width, self.height)
+        self.off_color = QColor(50, 50, 50, 255)
         self.num_channels = num_channels
         self.on_channels = np.zeros([num_suits, self.num_channels], dtype=np.bool)
         self.front = True

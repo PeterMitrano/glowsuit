@@ -156,8 +156,8 @@ def main():
         while True:
             sleep(10)
             # print(midi_handler.times)
-            dts = midi_handler.dts
-            print(np.min(dts), np.max(dts), np.median(dts))
+            # dts = midi_handler.dts
+            # print(np.min(dts), np.max(dts), np.median(dts))
     else:
         try:
             return_code = app.exec()
