@@ -2,9 +2,10 @@
 #include <iostream>
 
 #include <args.h>
+#include <thread>
+#include <alsa/asoundlib.h>
 #include <bitset>
 #include <chrono>
-#include <vector>
 #include <cstdlib>
 #include <serial/serial.h>
 #include <byteset.h>
@@ -12,11 +13,100 @@
 
 using namespace std::chrono_literals;
 
-constexpr auto period_ms = 1000ms;
 constexpr int message_size = 6;
 constexpr int midi_note_offset = 60;
 using State = Byteset<message_size>;
 
+void play_music(std::string const &filename)
+{
+    int pcm;
+    unsigned int tmp;
+    snd_pcm_t *pcm_handle;
+    snd_pcm_hw_params_t *params;
+    snd_pcm_uframes_t frames;
+    char *buff;
+    unsigned long buff_size;
+
+    auto rate = 44100u;
+
+    auto const fd = open(filename.c_str(), 'r');
+
+    /* Open the PCM device in playback mode */
+    pcm = snd_pcm_open(&pcm_handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
+    if (pcm < 0)
+    {
+        std::cout << "ERROR: Can't open default device. " << snd_strerror(pcm) << '\n';
+    }
+
+    /* Allocate parameters object and fill it with default values*/
+    snd_pcm_hw_params_alloca(&params);
+
+    snd_pcm_hw_params_any(pcm_handle, params);
+
+    /* Set parameters */
+    pcm = snd_pcm_hw_params_set_access(pcm_handle, params, SND_PCM_ACCESS_RW_INTERLEAVED);
+    if (pcm < 0)
+    {
+        std::cout << "ERROR: Can't set interleaved mode." << snd_strerror(pcm) << '\n';
+    }
+
+    pcm = snd_pcm_hw_params_set_format(pcm_handle, params, SND_PCM_FORMAT_S16_LE);
+    if (pcm < 0)
+    {
+        std::cout << "ERROR: Can't set format." << snd_strerror(pcm) << '\n';
+    }
+
+    snd_pcm_hw_params_set_channels(pcm_handle, params, 2);
+    pcm = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, nullptr);
+    if (pcm < 0)
+    {
+        std::cout << "ERROR: Can't set rate." << snd_strerror(pcm) << '\n';
+    }
+
+    /* Write parameters */
+    pcm = snd_pcm_hw_params(pcm_handle, params);
+    if (pcm < 0)
+    {
+        printf("ERROR: Can't set harware parameters. %s\n", snd_strerror(pcm));
+    }
+
+    snd_pcm_hw_params_get_channels(params, &tmp);
+
+    snd_pcm_hw_params_get_rate(params, &tmp, nullptr);
+
+    /* Allocate buffer to hold single period */
+    snd_pcm_hw_params_get_period_size(params, &frames, nullptr);
+
+    buff_size = frames * 2 * 2;
+    buff = (char *) malloc(buff_size);
+
+    snd_pcm_hw_params_get_period_time(params, &tmp, nullptr);
+
+    while (true)
+    {
+
+        auto const bytes_read = read(fd, buff, buff_size);
+        if (bytes_read == 0)
+        {
+            break;
+        }
+
+        auto const write_result = snd_pcm_writei(pcm_handle, buff, frames);
+        if (write_result == -EPIPE)
+        {
+            std::cout << "XRUN.\n";
+            snd_pcm_prepare(pcm_handle);
+        } else if (pcm < 0)
+        {
+            std::cout << "ERROR. Can't write to PCM device. " << snd_strerror(pcm) << "\n";
+        }
+
+    }
+
+    snd_pcm_drain(pcm_handle);
+    snd_pcm_close(pcm_handle);
+    free(buff);
+}
 
 int main(int const argc, char const *const *const argv)
 {
@@ -26,6 +116,7 @@ int main(int const argc, char const *const *const argv)
     args::CompletionFlag completion(parser, {"complete"});
     args::Positional<std::string> midi_filename_arg(parser, "midi_file", "midi file", args::Options::Required);
     args::Positional<std::string> serial_port_arg(parser, "serial_port", "serial port", args::Options::Required);
+    args::Positional<std::string> music_filename_arg(parser, "music_file", "music file", args::Options::Required);
 
     try
     {
@@ -49,6 +140,7 @@ int main(int const argc, char const *const *const argv)
     }
 
     auto const midi_filename = midi_filename_arg.Get();
+    auto const music_filename = music_filename_arg.Get();
     auto const serial_port = serial_port_arg.Get();
 
     // Create serial port
@@ -64,21 +156,17 @@ int main(int const argc, char const *const *const argv)
         return EXIT_FAILURE;
     }
 
-//    midifile.doTimeAnalysis();
-//    midifile.linkNotePairs();
-
     // TODO: make track number an argument
     auto const track = midifile[0];
     std::map<unsigned int, State> states;
+    // Initial OFF message to turn every thing off
+    states.emplace(0, State{});
     State current_state;
     auto const size = track.size();
-    std::cout << "Processing MIDI file...\n";
     for (int event_idx = 0; event_idx < size; ++event_idx)
     {
         auto const event = track[event_idx];
         auto const tick = event.tick;
-        auto const &onset_ms = static_cast<int>(midifile.getTimeInSeconds(tick) * 1000);
-        std::cout << onset_ms << '\n';
 
         if (not(event.isNoteOn() or event.isNoteOff()))
         {
@@ -95,7 +183,6 @@ int main(int const argc, char const *const *const argv)
                 continue;
             }
         }
-//        std::cout << "# " << current_state << '\n';
 
         // look ahead and merge in any of the next events which are supposed to occur simulatenously
         for (int lookahead_idx = event_idx + 1; lookahead_idx < track.size(); ++lookahead_idx)
@@ -111,20 +198,24 @@ int main(int const argc, char const *const *const argv)
                     continue;
                 }
                 current_state.set(future_id_number, future_event.isNoteOn());
-//                std::cout << "- " << current_state << " " << future_event.isNoteOn() << '\n';
                 event_idx += 1;
             } else
             {
                 break;
             }
         }
-//        std::cout << tick << ": " << current_state << '\n';
         states[tick] = current_state;
     }
 
-    // Wait for the user to start the chore, or until a midi message is received?
-    std::cout << "Press Enter to begin...\n";
-//    std::cin.get();
+    // FInal OFF message to turn every thing off
+    states.emplace(track[size - 1].tick + 1, State{});
+
+    // Start the music
+    auto thread_func = [&]()
+    {
+        play_music(music_filename);
+    };
+    std::thread music_thread(thread_func);
 
     // Transmit messages
     auto const t0 = std::chrono::high_resolution_clock::now();
@@ -144,16 +235,12 @@ int main(int const argc, char const *const *const argv)
             {
                 // transmit
                 my_serial.write(state.data.data(), message_size);
-                std::cout << state << '\n';
                 break;
-//            } else if (dt_to_last >= period_ms)
-//            {
-//                my_serial.write(state.data.data(), message_size);
-//                std::cout << state << '\n';
             }
         }
 
     }
 
+    music_thread.join();
     return EXIT_SUCCESS;
 }

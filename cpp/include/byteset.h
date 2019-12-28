@@ -11,6 +11,11 @@ class Byteset
 public:
     std::array<uint8_t, size> data;
 
+    explicit Byteset()
+    {
+        data.fill(0);
+    }
+
     void set(size_t overall_bit_index, bool value)
     {
         auto const byte_idx = static_cast<size_t>(overall_bit_index / 8);

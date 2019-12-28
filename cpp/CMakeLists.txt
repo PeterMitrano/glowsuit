@@ -11,7 +11,9 @@ file(GLOB_RECURSE midi_src midi/*.cpp)
 add_library(midi SHARED ${midi_src})
 target_include_directories(midi PUBLIC include)
 
-file(GLOB main_src *.cpp)
-add_executable(command_station ${main_src})
+add_executable(command_station main.cpp)
 target_include_directories(command_station PUBLIC include)
-target_link_libraries(command_station midi serial)
+target_link_libraries(command_station midi serial asound pthread)
+
+add_executable(sound_playback sound_playback.c)
+target_link_libraries(sound_playback asound)

@@ -72,6 +72,7 @@ class Visualizer(QWidget):
                         painter.setPen(color)
                         painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
 
+    @QtCore.pyqtSlot(int, int, int)
     def at(self, suit_number: int, command: int, channel_number: int):
         if 1 <= suit_number <= num_suits and 0 <= channel_number <= 7:
             if command == 128:  # off
