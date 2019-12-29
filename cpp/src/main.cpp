@@ -18,6 +18,7 @@ using State = Byteset<message_size>;
 
 int main(int const argc, char const *const *const argv)
 {
+
     // Argument Parsing
     args::ArgumentParser parser("Plays a Suit MIDI Choreo.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -47,6 +48,7 @@ int main(int const argc, char const *const *const argv)
         return 1;
     }
 
+
     auto const midi_filename = midi_filename_arg.Get();
     auto const music_filename = music_filename_arg.Get();
     auto const serial_port = serial_port_arg.Get();
@@ -58,7 +60,7 @@ int main(int const argc, char const *const *const argv)
     smf::MidiFile midifile;
     auto const status = midifile.read(midi_filename);
 
-    if (not status)
+    if (!status)
     {
         std::cout << "ERROR: couldn't open file\n";
         return EXIT_FAILURE;
@@ -76,7 +78,7 @@ int main(int const argc, char const *const *const argv)
         auto const event = track[event_idx];
         auto const tick = event.tick;
 
-        if (not(event.isNoteOn() or event.isNoteOff()))
+        if (!(event.isNoteOn() || event.isNoteOff()))
         {
             continue;
         }

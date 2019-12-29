@@ -2,5 +2,6 @@
 *.swp
 *.vs
 cmake-build-debug
+build-debug
 env.yaml
 .idea

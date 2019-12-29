@@ -28,7 +28,7 @@ public:
         }
         auto const mask = 1 << bit_idx;
         // http://graphics.stanford.edu/~seander/bithacks.html#ConditionalSetOrClearBitsWithoutBranching
-        data[byte_idx] ^= (-value ^ data[byte_idx]) & mask;
+        data[byte_idx] ^= ((-static_cast<int>(value)) ^ data[byte_idx]) & mask;
     }
 
 };
