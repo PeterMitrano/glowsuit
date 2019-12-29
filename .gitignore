@@ -1,4 +1,6 @@
 *.gz
+*.swp
+*.vs
 cmake-build-debug
 env.yaml
 .idea

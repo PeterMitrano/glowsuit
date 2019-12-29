@@ -1,0 +1,5 @@
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_PLATFORM Windows)
+set(CMAKE_MAKE_PROGRAM make)
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
