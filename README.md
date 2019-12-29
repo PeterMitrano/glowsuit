@@ -1,8 +1,15 @@
+# Overview
+
+To write choreo, you'll need LMMS or Ableton (or any other DAW should work). The DAW will be responsible for playing the music and the MIDI which controls the suits. The DAW gives you a nice way to write the MIDI and line everything up with the music. When you play the MIDI, it needs to be sent to the command station program. This program listens for MIDI (or reads a MIDI file) and both visualizes the choreo on your computer, and also optionally sends it to the suits. 
+
+Come performance time, we will be using the command station to both play the music and the choreo. This is done by giving it a MIDI file (the choreo) and a WAV file (the music). Then the command station program will start them at the same time. It also does some fancier things to improve performance/latency.
+
 # Installation
 
 ## Windows
 
 ### Setup
+
 
 Install MIDI-OX: [http://www.midiox.com/moxdown.htm](http://www.midiox.com/moxdown.htm)
 Install Loop-MIDI: [http://www.tobias-erichsen.de/wp-content/uploads/2018/12/loopMIDISetup_1_0_15_26.zip](http://www.tobias-erichsen.de/wp-content/uploads/2018/12/loopMIDISetup_1_0_15_26.zip)

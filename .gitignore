@@ -2,6 +2,8 @@
 *.swp
 *.vs
 cmake-build-debug
+*.wav
+*.mp3
 build-debug
 env.yaml
 .idea

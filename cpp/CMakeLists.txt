@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(command_station)
 
+#find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
