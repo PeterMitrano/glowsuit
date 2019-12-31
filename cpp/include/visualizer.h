@@ -28,7 +28,7 @@ public:
 	unsigned int top = 10;
 	QColor off_color{50, 50, 50, 255};
 	unsigned int num_channels = 0;
-	//on_channels = np.zeros([num_suits, num_channels], dtype = np.bool);
+	std::vector<std::vector<bool>> on_channels;
 	bool front = true;
 	bool back = true;
 	std::optional<json> suit_description;

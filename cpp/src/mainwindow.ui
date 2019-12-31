@@ -14,8 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(209, 209, 209);</string>
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="main">
    <property name="sizePolicy">

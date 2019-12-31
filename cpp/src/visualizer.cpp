@@ -8,38 +8,71 @@ Visualizer::Visualizer(std::optional<json> const& suit_description, size_t const
 	num_channels(num_channels)
 
 {
-
 	width = num_suits * suit_width + offset_x * 2;
+	on_channels.resize(num_suits);
+	for (auto& suit : on_channels)
+	{
+		suit.resize(num_channels);
+	}
 	setMinimumSize(width, height);
 }
 
 void Visualizer::paintEvent(QPaintEvent* event)
 {
-	QPainter painter;
-	painter.setRenderHint(QPainter::Antialiasing);
-	for (auto suit_idx{ 0u }; suit_idx <= num_suits; ++suit_idx)
-	{
-		//sx = self.offset_x + self.suit_width * suit_idx
-		//	sy = self.offset_y
-		//	for channel_idx, channel_description in enumerate(self.suit['channels']) :
-		//		if 'lines' in channel_description :
-		//for line in channel_description['lines'] :
-		//	color = self.off_color
-		//	r, g, b = line['color']
-		//	if self.on_channels[suit_idx, channel_idx] :
-		//		if (self.back and line['back']) or (self.front and line['front']) :
-		//			color = QColor(r, g, b, 255)
-		//			painter.setPen(color)
-		//			painter.drawLine(sx + line['x1'], sy + line['y1'], sx + line['x2'], sy + line['y2'])
+	if (!suit_description) {
+		return;
+	}
 
-		//			if 'circles' in channel_description :
-		//for circle in channel_description['circles'] :
-		//	color = self.off_color
-		//	r, g, b = circle['color']
-		//	if self.on_channels[suit_idx, channel_idx] :
-		//		if (self.back and circle['back']) or (self.front and circle['front']) :
-		//			color = QColor(r, g, b, 255)
-		//			painter.setPen(color)
-		//			painter.drawEllipse(sx + circle['x'], sy + circle['y'], circle['r'], circle['r'])
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing);
+
+	for (auto suit_idx{ 0u }; suit_idx < num_suits; ++suit_idx)
+	{
+		auto const sx = offset_x + suit_width * suit_idx;
+		auto const sy = offset_y;
+		auto channel_idx{ 0u };
+		for (auto& channel_description : suit_description.value()["channels"])
+		{
+			if (channel_description.contains("lines"))
+			{
+				for (auto& line : channel_description["lines"])
+				{
+					auto color = off_color;
+					auto color_description = line["color"];
+					auto r = color_description[0];
+					auto b = color_description[1];
+					auto g = color_description[2];
+					if (on_channels[suit_idx][channel_idx])
+					{
+						if ((back && line["back"]) || (front && line["front"]))
+						{
+							color = QColor(r, g, b, 255);
+						}
+					}
+					painter.setPen(color);
+					painter.drawLine(sx + line["x1"], sy + line["y1"], sx + line["x2"], sy + line["y2"]);
+				}
+			}
+			if (channel_description.contains("circles"))
+			{
+				for (auto& circle : channel_description["circles"]) {
+					auto color = off_color;
+					auto color_description = circle["color"];
+					auto r = color_description[0];
+					auto b = color_description[1];
+					auto g = color_description[2];
+					if (on_channels[suit_idx][channel_idx])
+					{
+						if ((back && circle["back"]) || (front && circle["front"]))
+						{
+							color = QColor(r, g, b, 255);
+						}
+					}
+					painter.setPen(color);
+					painter.drawEllipse(sx + circle["x"], sy + circle["y"], circle["r"], circle["r"]);
+				}
+			}
+			++channel_idx;
+		}
 	}
 }
