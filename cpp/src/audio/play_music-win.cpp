@@ -5,7 +5,7 @@
 #include <string>
 #include <Windows.h>
 #include <Winnt.h>
-
+#include <stdexcept>
 #include <audio/play_music.h>
 
 void play_music(std::string const &filename)

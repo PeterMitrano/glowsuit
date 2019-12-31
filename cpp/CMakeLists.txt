@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.5)
 project(command_station)
 
-#find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
@@ -12,6 +17,7 @@ else()
 	add_library(serial SHARED ${serial_src})
 endif()
 target_include_directories(serial PUBLIC include)
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
 	target_link_libraries(serial PUBLIC setupapi)
 endif()
@@ -40,9 +46,13 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
     message("Detected Mac...")
 endif ()
 
-add_executable(command_station src/main.cpp)
+# TODO: ifdefs so this works on linux too
+add_executable(command_station WIN32 src/command_station.cpp src/visualizer.cpp)
 target_include_directories(command_station PUBLIC include)
-target_link_libraries(command_station audio midi serial)
+target_link_libraries(command_station PUBLIC audio midi serial Qt5::Widgets)
 
 add_executable(test_win_audio src/test_win_audio.cpp)
 target_link_libraries(test_win_audio winmm)
+
+add_executable(midi_win src/midi_in_sample.cpp)
+target_link_libraries(midi_win winmm)
