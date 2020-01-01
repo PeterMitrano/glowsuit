@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(command_station)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 
@@ -47,9 +47,9 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
 endif ()
 
 # TODO: ifdefs so this works on linux too
-add_executable(command_station WIN32 src/command_station.cpp src/visualizer.cpp)
+add_executable(command_station WIN32 src/command_station.cpp src/visualizer.cpp src/main_ui.cpp include/main_ui.h include/visualizer.h) 
 target_include_directories(command_station PUBLIC include)
-target_link_libraries(command_station PUBLIC audio midi serial Qt5::Widgets)
+target_link_libraries(command_station PUBLIC audio midi serial Qt5::Widgets Qt5::Core)
 
 add_executable(test_win_audio src/test_win_audio.cpp)
 target_link_libraries(test_win_audio winmm)

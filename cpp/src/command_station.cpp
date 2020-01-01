@@ -1,3 +1,4 @@
+// Windows is a special header , it must go first
 #include <Windows.h>
 
 #include <bitset>
@@ -18,14 +19,16 @@
 #include <QPushButton>
 #include <QtPlugin>
 
+// TODO: fix this path?
+#include <../src/ui_mainwindow.h>
+
 #include <audio/play_music.h>
 #include <byteset.h>
 #include <json.h>
 #include <midi/MidiFile.h>
 #include <serial/serial.h>
 #include <visualizer.h>
-
-#include "ui_mainwindow.h"
+#include <main_ui.h>
 
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 
@@ -64,9 +67,9 @@ int main(int argc, char** argv)
 	ui.setupUi(&main_window);
 	Visualizer viz(suit_description, num_channels);
 	ui.verticalLayout->addWidget(&viz);
-	//ui.vertical_layout->addWidget(viz);
-	//main = MainUI(ui, viz);
-	//main.setup_ui()
+	// TODO: use unique_ptr for Viz here
+	MainUI main(ui, &viz);
+	main.setup_ui();
 	main_window.show();
 	return app.exec();
 

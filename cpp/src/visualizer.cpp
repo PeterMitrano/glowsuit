@@ -76,3 +76,12 @@ void Visualizer::paintEvent(QPaintEvent* event)
 		}
 	}
 }
+
+void Visualizer::front_status_clicked()
+{
+	front = !front;
+}
+
+void Visualizer::back_status_clicked() {
+	back = !back;
+}
