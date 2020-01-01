@@ -85,3 +85,23 @@ void Visualizer::front_status_clicked(bool const checked)
 void Visualizer::back_status_clicked(bool const checked) {
 	back = !back;
 }
+
+void Visualizer::on_midi_event(uint8_t suit_number, uint8_t command, uint8_t channel_number) {
+	if (suit_number < 1 || suit_number > num_suits || 0 < channel_number || channel_number > 7)
+	{
+		return;
+	}
+	if (command == 128) {
+
+		on_channels[suit_number - 1][channel_number] = 0;
+	}
+	else if (command == 144)
+	{
+		on_channels[suit_number - 1][channel_number] = 1;
+	}
+	else {
+		// just ignore any other types of midi messages
+		return;
+	}
+	update();
+}

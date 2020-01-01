@@ -3,16 +3,11 @@
 
 #include <bitset>
 #include <chrono>
-#include <conio.h>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <mmsystem.h>
 #include <optional>
-#include <SDKDDKVer.h>
-#include <stdio.h>
-#include <thread>
 
 #include <QApplication>
 #include <qmainwindow.h>
@@ -22,7 +17,6 @@
 // TODO: fix this path?
 #include <../src/ui_mainwindow.h>
 
-#include <audio/play_music.h>
 #include <byteset.h>
 #include <json.h>
 #include <midi/MidiFile.h>
@@ -41,7 +35,6 @@ constexpr int midi_note_offset = 60;
 using State = Byteset<message_size>;
 
 void PrintMidiDevices();
-void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
 
 
 std::map<unsigned int, State> parse_midifile(smf::MidiFile);
@@ -68,44 +61,10 @@ int main(int argc, char** argv)
 	Visualizer viz(suit_description, num_channels);
 	ui.verticalLayout->addWidget(&viz);
 	// TODO: use unique_ptr for Viz here
-	MainUI main(ui, &viz);
+	MainUI main(ui, &viz, num_channels);
 	main.setup_ui();
 	main_window.show();
 	return app.exec();
-
-	HMIDIIN hMidiDevice = nullptr;
-	DWORD nMidiPort = 0;
-	UINT nMidiDeviceNum;
-	MMRESULT rv;
-
-	PrintMidiDevices();
-
-	nMidiDeviceNum = midiInGetNumDevs();
-	if (nMidiDeviceNum == 0) {
-		fprintf(stderr, "midiInGetNumDevs() return 0...");
-		return -1;
-	}
-
-	rv = midiInOpen(&hMidiDevice, nMidiPort, (DWORD)(void*)MidiInProc, 0, CALLBACK_FUNCTION);
-	if (rv != MMSYSERR_NOERROR) {
-		fprintf(stderr, "midiInOpen() failed...rv=%d", rv);
-		return -1;
-	}
-
-	midiInStart(hMidiDevice);
-
-	while (true) {
-		if (!_kbhit()) {
-			Sleep(100);
-			continue;
-		}
-		int c = _getch();
-		if (c == VK_ESCAPE) break;
-		if (c == 'q') break;
-	}
-
-	midiInStop(hMidiDevice);
-	midiInClose(hMidiDevice);
 
 	auto const midi_filename = std::string();
 	auto const music_filename = std::string();
@@ -133,16 +92,6 @@ int main(int argc, char** argv)
 		play_from_live_midi();
 	}
 
-	if (true) {
-		// Start the music
-		auto thread_func = [&]()
-		{
-			play_music(music_filename);
-		};
-		std::thread music_thread(thread_func);
-	}
-
-	//music_thread.join();
 	return EXIT_SUCCESS;
 }
 
@@ -251,55 +200,5 @@ std::optional<json> load_suit_description()
 		return std::optional<json>(suit_description);
 	}
 	return std::optional<json>{};
-}
-
-void PrintMidiDevices()
-{
-	UINT nMidiDeviceNum;
-	MIDIINCAPS caps;
-
-	nMidiDeviceNum = midiInGetNumDevs();
-	if (nMidiDeviceNum == 0) {
-		fprintf(stderr, "midiInGetNumDevs() return 0...");
-		return;
-	}
-
-	printf("== PrintMidiDevices() == \n");
-	for (unsigned int i = 0; i < nMidiDeviceNum; ++i) {
-		midiInGetDevCaps(i, &caps, sizeof(MIDIINCAPS));
-		printf("\t%d : name = %s\n", i, caps.szPname);
-	}
-	printf("=====\n");
-}
-
-void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
-{
-	switch (wMsg) {
-	case MIM_OPEN:
-		printf("wMsg=MIM_OPEN\n");
-		break;
-	case MIM_CLOSE:
-		printf("wMsg=MIM_CLOSE\n");
-		break;
-	case MIM_DATA:
-		printf("wMsg=MIM_DATA, dwInstance=%08x, dwParam1=%08x, dwParam2=%08x\n", dwInstance, dwParam1, dwParam2);
-		break;
-	case MIM_LONGDATA:
-		printf("wMsg=MIM_LONGDATA\n");
-		break;
-	case MIM_ERROR:
-		printf("wMsg=MIM_ERROR\n");
-		break;
-	case MIM_LONGERROR:
-		printf("wMsg=MIM_LONGERROR\n");
-		break;
-	case MIM_MOREDATA:
-		printf("wMsg=MIM_MOREDATA\n");
-		break;
-	default:
-		printf("wMsg = unknown\n");
-		break;
-	}
-	return;
 }
 

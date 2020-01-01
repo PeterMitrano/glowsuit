@@ -11,6 +11,7 @@
 void play_music(std::string const &filename)
 {
 	// check the file exists?
+	// TODO: replace this with non-blocking multimedia control
 	auto const result = PlaySound(filename.c_str(), NULL, SND_FILENAME);
 	if (!result) {
 		throw std::runtime_error("playing sound failed");

@@ -105,6 +105,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="play_pause_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
                <string/>
               </property>
