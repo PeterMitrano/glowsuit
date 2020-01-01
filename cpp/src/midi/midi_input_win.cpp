@@ -1,9 +1,10 @@
 #include <Windows.h>
 
 #include <midi/midi_input.h>
+#include <sstream>
 #include <common.h>
 
-std::map<unsigned int, State> parse_midifile(smf::MidiFile midifile)
+std::map<unsigned int, State> parse_midifile(smf::MidiFile midifile, int octave_offset)
 {
 	// TODO: make track number an argument
 	auto const track = midifile[0];
@@ -24,7 +25,8 @@ std::map<unsigned int, State> parse_midifile(smf::MidiFile midifile)
 
 		{
 			auto const data = event.data();
-			auto const bit_idx = (static_cast<int>(data[2]) - midi_note_offset);
+			// why are all of these off by an octave?
+			auto const bit_idx = (static_cast<int>(data[1]) - midi_note_offset + 12 * octave_offset);
 			// TODO: something's wrong with my test midi file - this shouldn't be here
 			if (bit_idx < 0)
 			{
@@ -41,7 +43,7 @@ std::map<unsigned int, State> parse_midifile(smf::MidiFile midifile)
 			if (future_tick == tick)
 			{
 				auto const future_data = future_event.data();
-				auto const future_bit_idx = (static_cast<int>(future_data[2]) - midi_note_offset);
+				auto const future_bit_idx = (static_cast<int>(future_data[1]) - midi_note_offset + 12 * octave_offset);
 				if (future_bit_idx < 0)
 				{
 					continue;
@@ -62,7 +64,6 @@ std::map<unsigned int, State> parse_midifile(smf::MidiFile midifile)
 
 	return states;
 }
-
 
 LiveMidiWorker::LiveMidiWorker(size_t num_channels, QObject* parent)
 	: QObject(parent),
@@ -130,28 +131,51 @@ void CALLBACK LiveMidiWorker::callback(HMIDIIN hMidiIn, UINT wMsg, DWORD dwParam
 	if (wMsg == MIM_DATA)
 	{
 		unsigned int command = dwParam1 & 0xFF;
-		unsigned int pitch = static_cast<unsigned int>((dwParam1 >> 8) & 0xFF) - midi_note_offset;
-		unsigned int channel_number = pitch % num_channels;
-		unsigned int suit_number = static_cast<unsigned int>(pitch / num_channels) + 1;
+		int bit_idx = static_cast<int>((dwParam1 >> 8) & 0xFF) - midi_note_offset + 12 * octave_offset;
 
-		// send a message to the visualizer?
+		if (bit_idx < 0) {
+			return;
+		}
+
+		unsigned int channel_number = bit_idx % num_channels;
+		unsigned int suit_idx = static_cast<unsigned int>(bit_idx / num_channels);
+		unsigned int suit_number = suit_idx + 1;
+
+		// send a message to the visualizer
 		emit midi_event(suit_number, command, channel_number);
+
+		// update the current state and send the data
+		if (command == 128) {
+			current_state.set(bit_idx, false);
+		}
+		else if (command == 144) {
+			current_state.set(bit_idx, true);
+		}
+		else {
+			// just skip if it's not NOTE ON or NOTE OFF
+			return;
+		}
+
+		// transmit to suits
+		if (xbee_serial != nullptr) {
+			xbee_serial->write(current_state.data.data(), message_size);
+		}
 	}
 }
 
+void LiveMidiWorker::octave_spinbox_changed(int value)
+{
+	octave_offset = value;
+}
+
 MidiFileWorker::MidiFileWorker(size_t num_channels,
-	smf::MidiFile midifile,
-	std::map<unsigned int, State> states,
-	std::optional<serial::Serial>& xbee_serial,
 	QObject* parent)
 	: QObject(parent),
-	num_channels(num_channels),
-	midifile(midifile),
-	states(states),
-	xbee_serial(xbee_serial)
+	num_channels(num_channels)
 {}
 
-void MidiFileWorker::play_midi_data()
+// TODO: need to register the smf::MifiFile for QT transport
+void MidiFileWorker::play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states)
 {
 	// Transmit messages
 	auto const t0 = std::chrono::high_resolution_clock::now();
@@ -177,19 +201,23 @@ void MidiFileWorker::play_midi_data()
 						auto const bit = (byte >> bit_idx) & 0x1;
 						auto const command = bit == 1 ? 144 : 128;
 						auto const channel_number = bit_idx;
-						//char buff[100];
-						//snprintf(buff, 100, "%d %d %d\n", suit_idx + 1, command, channel_number);
-						//OutputDebugString(buff);
+
 						emit midi_event(suit_idx + 1, command, channel_number);
 					}
 				}
 
 				// transmit 
-				if (xbee_serial) {
+				if (xbee_serial != nullptr) {
 					xbee_serial->write(state.data.data(), message_size);
 				}
 				break;
 			}
 		}
 	}
+}
+
+
+void MidiFileWorker::octave_spinbox_changed(int value)
+{
+	octave_offset = value;
 }

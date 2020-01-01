@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>503</width>
     <height>144</height>
    </rect>
   </property>
@@ -128,6 +128,26 @@
               </property>
               <property name="checkable">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="octave_label">
+              <property name="text">
+               <string>Oct +/-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="octave_spinbox">
+              <property name="suffix">
+               <string/>
+              </property>
+              <property name="minimum">
+               <number>-2</number>
+              </property>
+              <property name="maximum">
+               <number>2</number>
               </property>
              </widget>
             </item>

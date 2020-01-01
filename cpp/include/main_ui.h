@@ -10,6 +10,7 @@
 
 #include <../src/ui_mainwindow.h>
 
+#include <audio/play_music.h>
 #include <midi/midi_input.h>
 #include <serial/serial.h>
 #include <visualizer.h>
@@ -41,10 +42,18 @@ public slots:
 
 	void xbee_port_changed(int index);
 
+signals:
+	void play_music(QString music_filename);
+
+	void play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states);
+
 public:
 
 	Ui_MainWindow ui;
 	Visualizer* viz;
+	LiveMidiWorker live_midi_worker;
+	MidiFileWorker midi_file_worker;
+	MusicWorker music_worker;
 	QString music_filename;
 	QString midi_filename;
 	QThread live_midi_thread;
@@ -53,6 +62,7 @@ public:
 	size_t num_channels;
 	smf::MidiFile midifile;
 	std::map<unsigned int, State> states;
-	std::optional<serial::Serial> xbee_serial;
+	// TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
+	serial::Serial* xbee_serial{ nullptr };
 	std::vector<serial::PortInfo> ports;
 };

@@ -8,11 +8,18 @@
 #include <stdexcept>
 #include <audio/play_music.h>
 
-void play_music(std::string const &filename)
+MusicWorker::MusicWorker(QObject *parent)
+	: QObject(parent)
+{}
+
+void MusicWorker::play_music(QString music_filename)
 {
+	// TODO: this might not be nessecary
+	this->music_filename = music_filename;
+
 	// check the file exists?
 	// TODO: replace this with non-blocking multimedia control
-	auto const result = PlaySound(filename.c_str(), NULL, SND_FILENAME);
+	auto const result = PlaySound(music_filename.toStdString().c_str(), NULL, SND_FILENAME);
 	if (!result) {
 		throw std::runtime_error("playing sound failed");
 	}
