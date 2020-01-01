@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>380</width>
-    <height>180</height>
+    <width>500</width>
+    <height>144</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -59,18 +59,31 @@
           <item row="0" column="1">
            <widget class="QLabel" name="music_filename_label">
             <property name="text">
-             <string>TextLabel</string>
+             <string>no file select</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QLabel" name="midi_filename_label">
             <property name="text">
-             <string>TextLabel</string>
+             <string>no file selected</string>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <layout class="QVBoxLayout" name="controls_layout">
@@ -86,31 +99,39 @@
             <item>
              <widget class="QLabel" name="midi_indicator_label">
               <property name="text">
-               <string>.</string>
+               <string/>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="play_pause_button">
               <property name="text">
-               <string>play_pause</string>
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../command_station.qrc">
+                <normaloff>:/icons/play-solid.png</normaloff>
+                <normalon>:/icons/pause-solid.png</normalon>:/icons/play-solid.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item>
            <layout class="QHBoxLayout" name="viz_controls_layout">
@@ -122,8 +143,32 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+background-color: #e83535;
+color: #000000;
+}
+QPushButton:pressed {
+background-color: #ad1010;
+color: #000000;
+}
+QPushButton:checked {
+background-color: #58eb34;
+color: #000000;
+}
+QPushButton:checked:pressed {
+background-color: #34ba13;
+color: #000000;
+}</string>
+              </property>
               <property name="text">
                <string>Front</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -135,8 +180,32 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+background-color: #e83535;
+color: #000000;
+}
+QPushButton:pressed {
+background-color: #ad1010;
+color: #000000;
+}
+QPushButton:checked {
+background-color: #58eb34;
+color: #000000;
+}
+QPushButton:checked:pressed {
+background-color: #34ba13;
+color: #000000;
+}</string>
+              </property>
               <property name="text">
                <string>Back</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -157,6 +226,19 @@
           </item>
          </layout>
         </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
       </item>
      </layout>
@@ -164,6 +246,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../command_station.qrc"/>
+ </resources>
  <connections/>
 </ui>

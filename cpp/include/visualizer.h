@@ -19,9 +19,9 @@ class Visualizer : public QWidget
 public:
 	Visualizer(std::optional<json> const& suit_description, size_t num_channels, QWidget* parent = nullptr);
 
-	void front_status_clicked();
+	void front_status_clicked(bool const checked);
 
-	void back_status_clicked();
+	void back_status_clicked(bool const checked);
 
 	unsigned int offset_x = 10;
 	unsigned int offset_y = 10;

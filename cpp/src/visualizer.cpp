@@ -77,11 +77,11 @@ void Visualizer::paintEvent(QPaintEvent* event)
 	}
 }
 
-void Visualizer::front_status_clicked()
+void Visualizer::front_status_clicked(bool const checked)
 {
 	front = !front;
 }
 
-void Visualizer::back_status_clicked() {
+void Visualizer::back_status_clicked(bool const checked) {
 	back = !back;
 }

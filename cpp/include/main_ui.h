@@ -20,16 +20,8 @@ public:
 
 	void setup_ui();
 
-public slots:
-	// TODO: use checkable QPushButtons instead of my own booleans
-	void front_status_clicked();
-
-	void back_status_clicked();
-
 public:
 
 	Ui_MainWindow ui;
 	Visualizer* viz;
-	QString button_off_style;
-	QString button_on_style;
 };
