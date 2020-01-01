@@ -4,7 +4,9 @@
 #include <map>
 #include <optional>
 
+#include <QCloseEvent>
 #include <QObject>
+#include <QSettings>
 #include <QString>
 #include <QThread>
 
@@ -19,17 +21,23 @@ QString select_music_file(QWidget* parent);
 
 QString select_midi_file(QWidget* parent);
 
-class MainUI : public QObject
+class MyMainWindow : public QMainWindow 
 {
 	Q_OBJECT
 
 public:
-	virtual ~MainUI();
+	virtual ~MyMainWindow();
 
 	/// viz must not be null
-	MainUI(Ui_MainWindow ui, Visualizer* viz, size_t num_channels);
+	MyMainWindow(Ui_MainWindow ui, Visualizer* viz, size_t num_channels);
 
 	void setup_ui();
+
+	void save_settings();
+
+	void restore_settings();
+
+	void closeEvent(QCloseEvent* event) override;
 
 public slots:
 	void live_midi_changed(int state);
@@ -65,4 +73,5 @@ public:
 	// TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
 	serial::Serial* xbee_serial{ nullptr };
 	std::vector<serial::PortInfo> ports;
+	QSettings* settings;
 };

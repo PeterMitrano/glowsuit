@@ -1,0 +1,9 @@
+<RCC>
+  <qresource>
+    <file>style.qss</file>
+  </qresource>
+  <qresource prefix="icons">
+    <file>pause-solid.png</file>
+    <file>play-solid.png</file>
+  </qresource>
+</RCC>

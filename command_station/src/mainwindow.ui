@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
+    <width>549</width>
     <height>144</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Glowsuit Command Station</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -122,7 +122,7 @@
                <string/>
               </property>
               <property name="icon">
-               <iconset resource="../command_station.qrc">
+               <iconset resource="../rc/command_station.qrc">
                 <normaloff>:/icons/play-solid.png</normaloff>
                 <normalon>:/icons/pause-solid.png</normalon>:/icons/play-solid.png</iconset>
               </property>
@@ -280,7 +280,7 @@ color: #000000;
   </widget>
  </widget>
  <resources>
-  <include location="../command_station.qrc"/>
+  <include location="../rc/command_station.qrc"/>
  </resources>
  <connections/>
 </ui>
