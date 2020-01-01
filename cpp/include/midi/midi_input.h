@@ -25,7 +25,7 @@ public slots:
 	void listen_for_midi();
 
 signals:
-	void midi_event(uint8_t suit_number, uint8_t command, uint8_t channel_number);
+	void midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
 	void my_finished();
 

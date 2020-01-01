@@ -10,8 +10,6 @@
 
 using json = nlohmann::json;
 
-constexpr size_t num_suits = 6;
-
 class Visualizer : public QWidget
 {
 	Q_OBJECT
@@ -38,7 +36,7 @@ public slots:
 
 	void back_status_clicked(bool const checked);
 
-	void on_midi_event(uint8_t suit_number, uint8_t command, uint8_t channel_number);
+	void on_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

@@ -1,6 +1,7 @@
 #include <QPainter>
 
 #include <visualizer.h>
+#include <common.h>
 
 Visualizer::Visualizer(std::optional<json> const& suit_description, size_t const num_channels, QWidget* parent)
 	: QWidget(parent),
@@ -86,8 +87,8 @@ void Visualizer::back_status_clicked(bool const checked) {
 	back = !back;
 }
 
-void Visualizer::on_midi_event(uint8_t suit_number, uint8_t command, uint8_t channel_number) {
-	if (suit_number < 1 || suit_number > num_suits || 0 < channel_number || channel_number > 7)
+void Visualizer::on_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number) {
+	if (suit_number < 1 || suit_number > num_suits || channel_number < 0 || channel_number > 7)
 	{
 		return;
 	}

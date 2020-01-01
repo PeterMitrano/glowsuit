@@ -67,10 +67,13 @@ void CALLBACK MidiInputWorker::callback(HMIDIIN hMidiIn, UINT wMsg, DWORD dwPara
 {
 	if (wMsg == MIM_DATA)
 	{
-		uint8_t command = dwParam1 & 0xFF;
-		uint8_t pitch = ((dwParam1 >> 8) & 0xFF) - 60;
-		uint8_t channel_number = pitch % num_channels;
-		uint8_t suit_number = pitch + 1u;
+		unsigned int command = dwParam1 & 0xFF;
+		unsigned int pitch = static_cast<unsigned int>((dwParam1 >> 8) & 0xFF) - 48;
+		unsigned int channel_number = pitch % num_channels;
+		unsigned int suit_number = static_cast<unsigned int>(pitch / num_channels) + 1;
+		//char buff[100];
+		//snprintf(buff, 100, "%d\n", pitch);
+		//OutputDebugString(buff);
 
 		// send a message to the visualizer?
 		emit midi_event(suit_number, command, channel_number);
