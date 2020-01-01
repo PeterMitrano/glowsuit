@@ -27,14 +27,13 @@ void MainUI::setup_ui()
 	QObject::connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainUI::live_midi_changed);
 
 	// start a thread for receiving MIDI
-	MidiInputWorker* worker = new MidiInputWorker(num_channels);
+	LiveMidiWorker* worker = new LiveMidiWorker(num_channels);
 	worker->moveToThread(&live_midi_thread);
-	QObject::connect(&live_midi_thread, &QThread::started, worker, &MidiInputWorker::listen_for_midi);
-	QObject::connect(worker, &MidiInputWorker::my_finished, &live_midi_thread, &QThread::quit);
+	QObject::connect(&live_midi_thread, &QThread::started, worker, &LiveMidiWorker::listen_for_midi);
+	QObject::connect(worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
+	QObject::connect(worker, &LiveMidiWorker::midi_event, viz, &Visualizer::on_live_midi_event);
 	live_midi_thread.start();
 
-	// when a midi event is received, MidiInputWorker will emit an event
-	QObject::connect(worker, &MidiInputWorker::midi_event, viz, &Visualizer::on_midi_event);
 
 	// Create serial port for writing to the XBee
 	ports = serial::list_ports();
@@ -61,7 +60,14 @@ void MainUI::play_pause_clicked(bool checked)
 	{
 		// TODO: make these requests to play/pause occur on a seperate thread
 		//play_music(music_filename.toStdString());
-		play_midi_data(midifile, states, xbee_serial);
+
+		// start a thread for receiving MIDI
+		MidiFileWorker* worker = new MidiFileWorker(num_channels, midifile, states, xbee_serial);
+		worker->moveToThread(&midi_file_thread);
+		QObject::connect(&midi_file_thread, &QThread::started, worker, &MidiFileWorker::play_midi_data);
+		QObject::connect(worker, &MidiFileWorker::my_finished, &midi_file_thread, &QThread::quit);
+		QObject::connect(worker, &MidiFileWorker::midi_event, viz, &Visualizer::on_midi_file_event);
+		midi_file_thread.start();
 	}
 	else {
 		//pause_music();
