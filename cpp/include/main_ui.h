@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <map>
+#include <optional>
 
 #include <QObject>
 #include <QString>
@@ -8,9 +10,13 @@
 
 #include <../src/ui_mainwindow.h>
 
+#include <midi/midi_input.h>
+#include <serial/serial.h>
 #include <visualizer.h>
 
 QString select_music_file(QWidget* parent);
+
+QString select_midi_file(QWidget* parent);
 
 class MainUI : public QObject
 {
@@ -29,13 +35,24 @@ public slots:
 
 	void play_pause_clicked(bool checked);
 
+	void midi_file_button_clicked();
+
 	void music_file_button_clicked();
+
+	void xbee_port_changed(int index);
 
 public:
 
 	Ui_MainWindow ui;
 	Visualizer* viz;
 	QString music_filename;
-	QThread midi_thread;
+	QString midi_filename;
+	QThread live_midi_thread;
+	QThread music_thread;
+	QThread midi_file_thread;
 	size_t num_channels;
+	smf::MidiFile midifile;
+	std::map<unsigned int, State> states;
+	std::optional<serial::Serial> xbee_serial;
+	std::vector<serial::PortInfo> ports;
 };

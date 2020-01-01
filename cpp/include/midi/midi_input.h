@@ -3,10 +3,22 @@
 #include <Windows.h>
 
 #include <conio.h>
+#include <map>
 #include <mmsystem.h>
+#include <optional>
 #include <SDKDDKVer.h>
 
 #include <QThread>
+
+#include <byteset.h>
+#include <serial/serial.h>
+#include <midi/MidiFile.h>
+
+constexpr int message_size = 6;
+using State = Byteset<message_size>;
+
+std::map<unsigned int, State> parse_midifile(smf::MidiFile);
+void play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states, std::optional<serial::Serial> &xbee_serial);
 
 class MidiInputWorker : public QObject
 {

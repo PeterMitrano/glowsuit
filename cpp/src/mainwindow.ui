@@ -70,6 +70,16 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="xbee_port_combobox"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="xbee_port_label">
+            <property name="text">
+             <string>XBee Serial Port</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>

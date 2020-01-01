@@ -92,6 +92,12 @@ void Visualizer::on_midi_event(unsigned int suit_number, unsigned int command, u
 	{
 		return;
 	}
+
+	if (!viz_from_live_midi)
+	{
+		return;
+	}
+
 	if (command == 128) {
 
 		on_channels[suit_number - 1][channel_number] = 0;

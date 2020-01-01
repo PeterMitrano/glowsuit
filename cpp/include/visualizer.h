@@ -30,6 +30,7 @@ public:
 	bool front = true;
 	bool back = true;
 	std::optional<json> suit_description;
+	bool viz_from_live_midi{ false };
 
 public slots:
 	void front_status_clicked(bool const checked);
@@ -40,5 +41,6 @@ public slots:
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
+
 
 };

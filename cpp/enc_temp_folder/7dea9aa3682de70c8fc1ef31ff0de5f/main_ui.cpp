@@ -95,6 +95,9 @@ void MainUI::midi_file_button_clicked()
 
 		// Parse MIDI file into sequence of serial messages
 		auto const result = midifile.read(midi_filename.toStdString());
+		char buff[100];
+		snprintf(buff, 100, "%d\n", result);
+		OutputDebugString(buff);
 		states = parse_midifile(midifile);
 
 		if (!ui.live_checkbox->isChecked())
