@@ -9,27 +9,29 @@
 #include <QSettings>
 #include <QString>
 #include <QThread>
+#include <QWidget>
 
-#include <../src/ui_mainwindow.h>
+#include <../src/ui_mainwidget.h>
 
 #include <audio/play_music.h>
 #include <midi/midi_input.h>
 #include <serial/serial.h>
 #include <visualizer.h>
 
+std::optional<json> load_suit_description();
+
 QString select_music_file(QWidget* parent);
 
 QString select_midi_file(QWidget* parent);
 
-class MyMainWindow : public QMainWindow 
+class MainWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	virtual ~MyMainWindow();
+	virtual ~MainWidget();
 
-	/// viz must not be null
-	MyMainWindow(Ui_MainWindow ui, Visualizer* viz, size_t num_channels);
+	MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget* parent = nullptr);
 
 	void setup_ui();
 
@@ -56,9 +58,7 @@ signals:
 	void play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states);
 
 public:
-
-	Ui_MainWindow ui;
-	Visualizer* viz;
+	Visualizer viz;
 	LiveMidiWorker live_midi_worker;
 	MidiFileWorker midi_file_worker;
 	MusicWorker music_worker;
@@ -74,4 +74,8 @@ public:
 	serial::Serial* xbee_serial{ nullptr };
 	std::vector<serial::PortInfo> ports;
 	QSettings* settings;
+
+
+private:
+	Ui_MainWidget ui;
 };

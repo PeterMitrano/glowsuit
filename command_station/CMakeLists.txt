@@ -49,7 +49,14 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
 endif ()
 
 # TODO: ifdefs so this works on linux too
-add_executable(command_station WIN32 src/command_station.cpp src/visualizer.cpp src/my_main_window.cpp include/my_main_window.h include/visualizer.h rc/command_station.qrc)
+add_executable(command_station
+				WIN32
+				src/command_station.cpp
+				src/visualizer.cpp
+				src/main_widget.cpp
+				include/main_widget.h
+				include/visualizer.h
+				rc/command_station.qrc)
 target_include_directories(command_station PUBLIC include)
 target_link_libraries(command_station PUBLIC audio midi serial Qt5::Core Qt5::Widgets)
 

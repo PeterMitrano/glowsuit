@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWidget</class>
+ <widget class="QWidget" name="MainWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>610</width>
+    <height>301</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Glowsuit Command Station</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="vertical_layout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontal_layout">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <layout class="QFormLayout" name="form_layout">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="select_midi_file_button">
+           <property name="text">
+            <string>Midi File</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="select_music_file_button">
+           <property name="text">
+            <string>Music File</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="music_filename_label">
+           <property name="text">
+            <string>no file select</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="midi_filename_label">
+           <property name="text">
+            <string>no file selected</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="xbee_port_combobox"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="xbee_port_label">
+           <property name="text">
+            <string>XBee Serial Port</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="controls_layout">
+         <item>
+          <layout class="QHBoxLayout" name="sub_controls_layout">
+           <item>
+            <widget class="QCheckBox" name="live_checkbox">
+             <property name="text">
+              <string>Live Midi?</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="midi_indicator_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="play_pause_button">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../rc/command_station.qrc">
+               <normaloff>:/icons/play-solid.png</normaloff>
+               <normalon>:/icons/pause-solid.png</normalon>:/icons/play-solid.png</iconset>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="octave_label">
+             <property name="text">
+              <string>Oct +/-</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="octave_spinbox">
+             <property name="suffix">
+              <string/>
+             </property>
+             <property name="minimum">
+              <number>-2</number>
+             </property>
+             <property name="maximum">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="viz_controls_layout">
+           <item>
+            <widget class="QPushButton" name="front_button">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+background-color: #e83535;
+color: #000000;
+}
+QPushButton:pressed {
+background-color: #ad1010;
+color: #000000;
+}
+QPushButton:checked {
+background-color: #58eb34;
+color: #000000;
+}
+QPushButton:checked:pressed {
+background-color: #34ba13;
+color: #000000;
+}</string>
+             </property>
+             <property name="text">
+              <string>Front</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="back_button">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+background-color: #e83535;
+color: #000000;
+}
+QPushButton:pressed {
+background-color: #ad1010;
+color: #000000;
+}
+QPushButton:checked {
+background-color: #58eb34;
+color: #000000;
+}
+QPushButton:checked:pressed {
+background-color: #34ba13;
+color: #000000;
+}</string>
+             </property>
+             <property name="text">
+              <string>Back</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../rc/command_station.qrc"/>
+ </resources>
+ <connections/>
+</ui>
