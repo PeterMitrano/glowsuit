@@ -64,7 +64,7 @@ public:
 	serial::Serial* xbee_serial{ nullptr };
 
 public slots:
-	void play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states);
+	void play_midi_data(QString midi_filename, int octave_offset);
 
 	void octave_spinbox_changed(int value);
 

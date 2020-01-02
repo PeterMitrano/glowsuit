@@ -175,8 +175,13 @@ MidiFileWorker::MidiFileWorker(size_t num_channels,
 {}
 
 // TODO: need to register the smf::MifiFile for QT transport
-void MidiFileWorker::play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states)
+void MidiFileWorker::play_midi_data(QString const midi_filename, int const octave_offset)
 {
+	// Parse MIDI file into sequence of serial messages
+	smf::MidiFile midifile;
+	auto const result = midifile.read(midi_filename.toStdString());
+	auto const states = parse_midifile(midifile, octave_offset);
+
 	// Transmit messages
 	auto const t0 = std::chrono::high_resolution_clock::now();
 	for (auto& pair : states)

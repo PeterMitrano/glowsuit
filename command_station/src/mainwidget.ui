@@ -91,36 +91,11 @@
        <item>
         <layout class="QVBoxLayout" name="controls_layout">
          <item>
-          <layout class="QHBoxLayout" name="sub_controls_layout">
+          <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <widget class="QCheckBox" name="live_checkbox">
              <property name="text">
               <string>Live Midi?</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="midi_indicator_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="play_pause_button">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../rc/command_station.qrc">
-               <normaloff>:/icons/play-solid.png</normaloff>
-               <normalon>:/icons/pause-solid.png</normalon>:/icons/play-solid.png</iconset>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -141,6 +116,70 @@
              </property>
              <property name="maximum">
               <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="midi_indicator_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="sub_controls_layout">
+           <item>
+            <layout class="QVBoxLayout" name="player_vertical_layout"/>
+           </item>
+           <item>
+            <widget class="QToolButton" name="stop_button">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset theme="media-playback-stop"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="play_button">
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset theme="media-playback-start"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="player_slider">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="player_time_label">
+             <property name="text">
+              <string>00:00/00:00</string>
              </property>
             </widget>
            </item>

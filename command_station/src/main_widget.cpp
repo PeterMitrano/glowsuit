@@ -1,44 +1,61 @@
 #include <Windows.h>
 
 #include <QCheckBox>
-#include <QMessageBox>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTime>
 
 #include <common.h>
 #include <main_widget.h>
 
 
+// TODO: don't make num_channels be require upon construction
+// move that code inside here, and pass that info in the signals/slots
 MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget* parent)
 	: QWidget(parent),
 	viz(suit_description, num_channels),
 	num_channels(num_channels),
 	live_midi_worker(num_channels),
-	midi_file_worker(num_channels),
-	music_worker()
+	midi_file_worker(num_channels)
 {
-
 	ui.setupUi(this);
 
 	ui.verticalLayout->addWidget(&viz);
 
-	QObject::connect(ui.front_button, &QPushButton::clicked, &viz, &Visualizer::front_status_clicked);
-	QObject::connect(ui.back_button, &QPushButton::clicked, &viz, &Visualizer::back_status_clicked);
-	QObject::connect(ui.play_pause_button, &QPushButton::clicked, this, &MainWidget::play_pause_clicked);
-	QObject::connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
-	QObject::connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
-	QObject::connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
-	// FIXME: this is broken because the workers are nullptr at the moment
-	QObject::connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &live_midi_worker, &LiveMidiWorker::octave_spinbox_changed);
-	QObject::connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &midi_file_worker, &MidiFileWorker::octave_spinbox_changed);
+	ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+	ui.stop_button->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+	connect(ui.play_button, &QAbstractButton::clicked, this, &MainWidget::play_pause_clicked);
+	connect(ui.stop_button, &QAbstractButton::clicked, this, &MainWidget::stop);
 
-	// Thread for music
-	music_worker.moveToThread(&music_thread);
-	QObject::connect(this, &MainWidget::play_music, &music_worker, &MusicWorker::play_music);
-	QObject::connect(&music_worker, &MusicWorker::my_finished, &music_thread, &QThread::quit);
-	music_thread.start();
+	player = new QMediaPlayer(this);
+
+	ui.player_slider->setRange(0, player->duration() / 1000);
+
+	connect(this, &MainWidget::play, player, &QMediaPlayer::play);
+	connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
+	connect(player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
+	connect(player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
+	connect(player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
+	connect(player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MainWidget::display_error_message);
+
+	connect(this, &MainWidget::play, player, &QMediaPlayer::play);
+	connect(this, &MainWidget::pause, player, &QMediaPlayer::pause);
+	connect(this, &MainWidget::stop, player, &QMediaPlayer::stop);
+	connect(player, &QMediaPlayer::stateChanged, this, &MainWidget::set_state);
+
+	connect(ui.front_button, &QPushButton::clicked, &viz, &Visualizer::front_status_clicked);
+	connect(ui.back_button, &QPushButton::clicked, &viz, &Visualizer::back_status_clicked);
+	connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
+	connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
+	connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
+	// FIXME: this is broken because the workers are nullptr at the moment
+	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &live_midi_worker, &LiveMidiWorker::octave_spinbox_changed);
+	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &midi_file_worker, &MidiFileWorker::octave_spinbox_changed);
+
+	set_state(player->state());
 
 	// start a thread for receiving MIDI
 	midi_file_worker.moveToThread(&midi_file_thread);
@@ -65,6 +82,14 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	QObject::connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWidget::xbee_port_changed);
 
 	restore_settings();
+
+	if (!player->isAvailable()) {
+		QMessageBox::warning(this, tr("Service not available"),
+			tr("The QMediaPlayer object does not have a valid service.\n"\
+				"Please check the media service plugins are installed."));
+
+		ui.player_vertical_layout->setEnabled(false);
+	}
 }
 
 MainWidget::~MainWidget()
@@ -75,22 +100,6 @@ MainWidget::~MainWidget()
 
 	midi_file_thread.quit();
 	midi_file_thread.wait();
-
-	music_thread.quit();
-	music_thread.wait();
-}
-
-void MainWidget::play_pause_clicked(bool checked)
-{
-	// checked means play
-	if (checked)
-	{
-		emit play_music(music_filename);
-		emit play_midi_data(midifile, states);
-	}
-	else {
-		//pause_music();
-	}
 }
 
 void MainWidget::music_file_button_clicked()
@@ -99,11 +108,9 @@ void MainWidget::music_file_button_clicked()
 	music_filename = select_music_file(ui.select_music_file_button);
 	if (!music_filename.isNull())
 	{
+		// load new media and set the label
 		ui.music_filename_label->setText(music_filename);
-		if (!ui.live_checkbox->isChecked() && !midi_filename.isNull())
-		{
-			ui.play_pause_button->setEnabled(true);
-		}
+		player->setMedia(QUrl::fromLocalFile(music_filename));
 	}
 }
 
@@ -118,15 +125,6 @@ void MainWidget::midi_file_button_clicked()
 	if (!midi_filename.isNull())
 	{
 		ui.midi_filename_label->setText(midi_filename);
-
-		// Parse MIDI file into sequence of serial messages
-		auto const result = midifile.read(midi_filename.toStdString());
-		states = parse_midifile(midifile, ui.octave_spinbox->value());
-
-		if (!ui.live_checkbox->isChecked() && !music_filename.isNull())
-		{
-			ui.play_pause_button->setEnabled(true);
-		}
 	}
 }
 
@@ -139,18 +137,11 @@ void MainWidget::live_midi_changed(int state)
 {
 	if (state == Qt::Checked)
 	{
-		ui.play_pause_button->setEnabled(false);
-		ui.midi_indicator_label->setEnabled(true);
 		viz.viz_from_live_midi = true;
 	}
 	else if (state == Qt::Unchecked)
 	{
 		viz.viz_from_live_midi = false;
-		ui.midi_indicator_label->setEnabled(false);
-		if (!music_filename.isNull()) {
-			// play pause should only be enabled if BOTH live midi is unchecked AND there's a valid music file
-			ui.play_pause_button->setEnabled(true);
-		}
 	}
 }
 
@@ -184,26 +175,19 @@ void MainWidget::restore_settings() {
 
 	ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
 	ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
-	music_filename = settings->value("files/music").toInt();
+	music_filename = settings->value("files/music").toString();
 	ui.music_filename_label->setText(music_filename);
-	midi_filename = settings->value("files/midi").toInt();
+	midi_filename = settings->value("files/midi").toString();
 	ui.midi_filename_label->setText(midi_filename);
 
-	// TODO: improve how this kind of GUI/state logic is handled. 
-	// Call some function for setting the midi filename instead of setting directly?
-	if (!music_filename.isNull() && !midi_filename.isNull())
-	{
-		if (!ui.live_checkbox->isChecked())
-		{
-			ui.play_pause_button->setEnabled(true);
-		}
-	}
+	player->setMedia(QUrl::fromLocalFile(music_filename));
 }
 
 std::optional<json> load_suit_description()
 {
 	if (!QFile::exists("suit.json"))
 	{
+		// TODO: use QMessageBox::warning
 		QMessageBox suit_description_message_box;
 		suit_description_message_box.setText("suit.json was not found, it should be in the same folder as the executable.");
 		suit_description_message_box.exec();
@@ -214,4 +198,122 @@ std::optional<json> load_suit_description()
 	json suit_description;
 	suit_description_file >> suit_description;
 	return std::optional<json>(suit_description);
+}
+
+QMediaPlayer::State MainWidget::state() const
+{
+	return player_state;
+}
+
+void MainWidget::set_state(QMediaPlayer::State state)
+{
+	if (state != player_state) {
+		player_state = state;
+
+		switch (state) {
+		case QMediaPlayer::StoppedState:
+			ui.stop_button->setEnabled(false);
+			ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+			break;
+		case QMediaPlayer::PlayingState:
+			ui.stop_button->setEnabled(true);
+			ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+			break;
+		case QMediaPlayer::PausedState:
+			ui.stop_button->setEnabled(true);
+			ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+			break;
+		}
+	}
+}
+
+void MainWidget::play_pause_clicked()
+{
+	switch (player_state) {
+	case QMediaPlayer::StoppedState:
+	case QMediaPlayer::PausedState:
+		emit play();
+		break;
+	case QMediaPlayer::PlayingState:
+		emit pause();
+		break;
+	}
+}
+
+void MainWidget::seek(int seconds)
+{
+	player->setPosition(seconds * 1000);
+}
+
+void MainWidget::duration_changed(qint64 duration)
+{
+	this->duration = duration / 1000;
+	ui.player_slider->setMaximum(this->duration);
+}
+
+
+void MainWidget::position_changed(qint64 progress)
+{
+	if (!ui.player_slider->isSliderDown())
+		ui.player_slider->setValue(progress / 1000);
+
+	update_duration_info(progress / 1000);
+}
+
+void MainWidget::update_duration_info(qint64 currentInfo)
+{
+	QString time_str;
+	if (currentInfo || duration) {
+		QTime current_time((currentInfo / 3600) % 60, (currentInfo / 60) % 60, currentInfo % 60, (currentInfo * 1000) % 1000);
+		QTime total_time((duration / 3600) % 60, (duration / 60) % 60, duration % 60, (duration * 1000) % 1000);
+		QString format = "mm:ss";
+		if (duration > 3600) {
+			format = "hh:mm:ss";
+		}
+		time_str = current_time.toString(format) + " / " + total_time.toString(format);
+	}
+	ui.player_time_label->setText(time_str);
+}
+
+void MainWidget::status_changed(QMediaPlayer::MediaStatus status)
+{
+	handle_cursor(status);
+
+	// handle status message
+	switch (status) {
+	case QMediaPlayer::UnknownMediaStatus:
+	case QMediaPlayer::NoMedia:
+	case QMediaPlayer::LoadedMedia:
+		break;
+	case QMediaPlayer::LoadingMedia:
+		break;
+	case QMediaPlayer::BufferingMedia:
+	case QMediaPlayer::BufferedMedia:
+		break;
+	case QMediaPlayer::StalledMedia:
+		break;
+	case QMediaPlayer::EndOfMedia:
+		QApplication::alert(this);
+		break;
+	case QMediaPlayer::InvalidMedia:
+		display_error_message();
+		break;
+	}
+}
+
+void MainWidget::display_error_message()
+{
+	QMessageBox::warning(this, QString("Media Error"), player->errorString());
+}
+
+void MainWidget::handle_cursor(QMediaPlayer::MediaStatus status)
+{
+#ifndef QT_NO_CURSOR
+	if (status == QMediaPlayer::LoadingMedia ||
+		status == QMediaPlayer::BufferingMedia ||
+		status == QMediaPlayer::StalledMedia)
+		setCursor(QCursor(Qt::BusyCursor));
+	else
+		unsetCursor();
+#endif
 }
