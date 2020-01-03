@@ -14,8 +14,8 @@
 
 #include <../src/ui_mainwidget.h>
 
-#include <audio/play_music.h>
 #include <midi/midi_input.h>
+#include <midi/midi_file_player.h>
 #include <serial/serial.h>
 #include <visualizer.h>
 
@@ -73,9 +73,7 @@ public slots:
 
 
 signals:
-	void play_music(QString music_filename);
-
-	void play_midi_data(QString midi_filename, int octave_offset);
+	void midi_file_changed(QString midi_filename);
 
 	void play();
 
@@ -86,11 +84,9 @@ signals:
 public:
 	Visualizer viz;
 	LiveMidiWorker live_midi_worker;
-	MidiFileWorker midi_file_worker;
 	QString music_filename;
 	QString midi_filename;
 	QThread live_midi_thread;
-	QThread midi_file_thread;
 	size_t num_channels;
 	smf::MidiFile midifile;
 	std::map<unsigned int, State> states;
@@ -104,7 +100,9 @@ private:
 	Ui_MainWidget ui;
 
 	QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
-	QMediaPlayer* player{ nullptr };
+	QMediaPlayer* music_player{ nullptr };
+	QThread midi_player_thread;
+	MidiFilePlayer* midi_file_player{ nullptr };
 
 	qint64 duration{ 0 };
 

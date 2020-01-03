@@ -10,15 +10,9 @@
 
 #include <QThread>
 
-#include <byteset.h>
 #include <serial/serial.h>
 #include <midi/MidiFile.h>
-
-constexpr int message_size = 6;
-using State = Byteset<message_size>;
-
-std::map<unsigned int, State> parse_midifile(smf::MidiFile, int octave_offset);
-void play_midi_data(smf::MidiFile midifile, std::map<unsigned int, State> states, std::optional<serial::Serial>& xbee_serial);
+#include <midi/midi_common.h>
 
 class LiveMidiWorker : public QObject
 {
@@ -52,29 +46,3 @@ private:
 	State current_state;
 
 };
-
-
-class MidiFileWorker : public QObject
-{
-	Q_OBJECT
-
-public:
-	MidiFileWorker(size_t num_channels, QObject* parent = nullptr);
-
-	serial::Serial* xbee_serial{ nullptr };
-
-public slots:
-	void play_midi_data(QString midi_filename, int octave_offset);
-
-	void octave_spinbox_changed(int value);
-
-signals:
-	void midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
-
-	void my_finished();
-
-private:
-	size_t num_channels;
-	int octave_offset;
-};
-

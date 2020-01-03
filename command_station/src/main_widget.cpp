@@ -1,5 +1,3 @@
-#include <Windows.h>
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
@@ -10,7 +8,24 @@
 
 #include <common.h>
 #include <main_widget.h>
+#include <midi/midi_file_player.h>
 
+std::optional<json> load_suit_description()
+{
+	if (!QFile::exists("suit.json"))
+	{
+		// TODO: use QMessageBox::warning
+		QMessageBox suit_description_message_box;
+		suit_description_message_box.setText("suit.json was not found, it should be in the same folder as the executable.");
+		suit_description_message_box.exec();
+		return std::optional<json>{};
+	}
+	std::ifstream suit_description_file("suit.json");
+
+	json suit_description;
+	suit_description_file >> suit_description;
+	return std::optional<json>(suit_description);
+}
 
 // TODO: don't make num_channels be require upon construction
 // move that code inside here, and pass that info in the signals/slots
@@ -18,8 +33,7 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	: QWidget(parent),
 	viz(suit_description, num_channels),
 	num_channels(num_channels),
-	live_midi_worker(num_channels),
-	midi_file_worker(num_channels)
+	live_midi_worker(num_channels)
 {
 	ui.setupUi(this);
 
@@ -30,39 +44,40 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	connect(ui.play_button, &QAbstractButton::clicked, this, &MainWidget::play_pause_clicked);
 	connect(ui.stop_button, &QAbstractButton::clicked, this, &MainWidget::stop);
 
-	player = new QMediaPlayer(this);
+	// these are pointers because you can't use "this" in an the constructor initializer list
+	music_player = new QMediaPlayer(this);
+	music_player->setNotifyInterval(100);
 
-	ui.player_slider->setRange(0, player->duration() / 1000);
+	midi_file_player = new MidiFilePlayer();
+	midi_file_player->start_thread();
+	connect(this, &MainWidget::midi_file_changed, midi_file_player, &MidiFilePlayer::midi_file_changed);
+	connect(midi_file_player, &MidiFilePlayer::midi_event, &viz, &Visualizer::on_midi_file_event);
+	ui.player_slider->setRange(0, music_player->duration() / 1000);
 
-	connect(this, &MainWidget::play, player, &QMediaPlayer::play);
 	connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
-	connect(player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
-	connect(player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
-	connect(player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
-	connect(player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MainWidget::display_error_message);
+	connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
+	//connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
+	connect(music_player, &QMediaPlayer::positionChanged, midi_file_player, &MidiFilePlayer::position_changed);
+	connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
+	connect(music_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MainWidget::display_error_message);
 
-	connect(this, &MainWidget::play, player, &QMediaPlayer::play);
-	connect(this, &MainWidget::pause, player, &QMediaPlayer::pause);
-	connect(this, &MainWidget::stop, player, &QMediaPlayer::stop);
-	connect(player, &QMediaPlayer::stateChanged, this, &MainWidget::set_state);
+	connect(this, &MainWidget::play, music_player, &QMediaPlayer::play);
+	connect(this, &MainWidget::pause, music_player, &QMediaPlayer::pause);
+	connect(this, &MainWidget::stop, music_player, &QMediaPlayer::stop);
+	connect(this, &MainWidget::play, midi_file_player, &MidiFilePlayer::play);
+	connect(this, &MainWidget::pause, midi_file_player, &MidiFilePlayer::pause);
+	connect(this, &MainWidget::stop, midi_file_player, &MidiFilePlayer::stop);
+	connect(music_player, &QMediaPlayer::stateChanged, this, &MainWidget::set_state);
 
 	connect(ui.front_button, &QPushButton::clicked, &viz, &Visualizer::front_status_clicked);
 	connect(ui.back_button, &QPushButton::clicked, &viz, &Visualizer::back_status_clicked);
 	connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
 	connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
 	connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
-	// FIXME: this is broken because the workers are nullptr at the moment
 	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &live_midi_worker, &LiveMidiWorker::octave_spinbox_changed);
-	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &midi_file_worker, &MidiFileWorker::octave_spinbox_changed);
+	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player, &MidiFilePlayer::octave_spinbox_changed);
 
-	set_state(player->state());
-
-	// start a thread for receiving MIDI
-	midi_file_worker.moveToThread(&midi_file_thread);
-	QObject::connect(this, &MainWidget::play_midi_data, &midi_file_worker, &MidiFileWorker::play_midi_data);
-	QObject::connect(&midi_file_worker, &MidiFileWorker::my_finished, &midi_file_thread, &QThread::quit);
-	QObject::connect(&midi_file_worker, &MidiFileWorker::midi_event, &viz, &Visualizer::on_midi_file_event);
-	midi_file_thread.start();
+	set_state(music_player->state());
 
 	// start a thread for receiving MIDI
 	live_midi_worker.moveToThread(&live_midi_thread);
@@ -71,7 +86,8 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	QObject::connect(&live_midi_worker, &LiveMidiWorker::midi_event, &viz, &Visualizer::on_live_midi_event);
 	live_midi_thread.start();
 
-	// Create serial port for writing to the XBee
+	// Populate list of serial ports
+	// TODO: make this update somewhere, probably just poll every second
 	ports = serial::list_ports();
 	for (auto& port : ports) {
 		if (port.description.find("Serial Port") != std::string::npos) {
@@ -83,7 +99,7 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 
 	restore_settings();
 
-	if (!player->isAvailable()) {
+	if (!music_player->isAvailable()) {
 		QMessageBox::warning(this, tr("Service not available"),
 			tr("The QMediaPlayer object does not have a valid service.\n"\
 				"Please check the media service plugins are installed."));
@@ -98,8 +114,9 @@ MainWidget::~MainWidget()
 	live_midi_thread.quit();
 	live_midi_thread.wait();
 
-	midi_file_thread.quit();
-	midi_file_thread.wait();
+	midi_player_thread.requestInterruption();
+	midi_player_thread.quit();
+	midi_player_thread.wait();
 }
 
 void MainWidget::music_file_button_clicked()
@@ -110,7 +127,7 @@ void MainWidget::music_file_button_clicked()
 	{
 		// load new media and set the label
 		ui.music_filename_label->setText(music_filename);
-		player->setMedia(QUrl::fromLocalFile(music_filename));
+		music_player->setMedia(QUrl::fromLocalFile(music_filename));
 	}
 }
 
@@ -125,6 +142,7 @@ void MainWidget::midi_file_button_clicked()
 	if (!midi_filename.isNull())
 	{
 		ui.midi_filename_label->setText(midi_filename);
+		emit midi_file_changed(midi_filename);
 	}
 }
 
@@ -152,7 +170,7 @@ void MainWidget::xbee_port_changed(int index)
 
 	// TODO: is this an error? possible data race
 	live_midi_worker.xbee_serial = xbee_serial;
-	midi_file_worker.xbee_serial = xbee_serial;
+	midi_file_player->xbee_serial = xbee_serial;
 }
 
 void MainWidget::closeEvent(QCloseEvent* event)
@@ -180,24 +198,8 @@ void MainWidget::restore_settings() {
 	midi_filename = settings->value("files/midi").toString();
 	ui.midi_filename_label->setText(midi_filename);
 
-	player->setMedia(QUrl::fromLocalFile(music_filename));
-}
-
-std::optional<json> load_suit_description()
-{
-	if (!QFile::exists("suit.json"))
-	{
-		// TODO: use QMessageBox::warning
-		QMessageBox suit_description_message_box;
-		suit_description_message_box.setText("suit.json was not found, it should be in the same folder as the executable.");
-		suit_description_message_box.exec();
-		return std::optional<json>{};
-	}
-	std::ifstream suit_description_file("suit.json");
-
-	json suit_description;
-	suit_description_file >> suit_description;
-	return std::optional<json>(suit_description);
+	music_player->setMedia(QUrl::fromLocalFile(music_filename));
+	emit midi_file_changed(midi_filename);
 }
 
 QMediaPlayer::State MainWidget::state() const
@@ -242,7 +244,7 @@ void MainWidget::play_pause_clicked()
 
 void MainWidget::seek(int seconds)
 {
-	player->setPosition(seconds * 1000);
+	music_player->setPosition(seconds * 1000);
 }
 
 void MainWidget::duration_changed(qint64 duration)
@@ -303,7 +305,7 @@ void MainWidget::status_changed(QMediaPlayer::MediaStatus status)
 
 void MainWidget::display_error_message()
 {
-	QMessageBox::warning(this, QString("Media Error"), player->errorString());
+	QMessageBox::warning(this, QString("Media Error"), music_player->errorString());
 }
 
 void MainWidget::handle_cursor(QMediaPlayer::MediaStatus status)

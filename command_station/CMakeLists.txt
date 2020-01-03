@@ -23,30 +23,14 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
 endif()
 
 file(GLOB_RECURSE midi_src src/midi/*.cpp)
-list(APPEND midi_src include/midi/midi_input.h)
+list(APPEND midi_src include/midi/midi_input.h include/midi/midi_file_player.h)
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
 	add_library(midi STATIC ${midi_src})
 else()
 	add_library(midi SHARED ${midi_src})
 endif()
 target_include_directories(midi PUBLIC include)
-target_link_libraries(midi PUBLIC Qt5::Core)
-
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    message("Detected Linux...")
-    set(audio_src src/audio/play_music-linux.cpp)
-    add_library(audio SHARED ${audio_src})
-    target_include_directories(audio PUBLIC include)
-    target_link_libraries(audio PUBLIC asound pthread)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-    message("Detected Windows...")
-    set(audio_src src/audio/play_music.cpp)
-    add_library(audio STATIC ${audio_src} include/audio/play_music.h)
-    target_include_directories(audio PUBLIC include)
-    target_link_libraries(audio PUBLIC winmm Qt5::Core Qt5::Multimedia)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
-    message("Detected Mac...")
-endif ()
+target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
 
 # TODO: ifdefs so this works on linux too
 add_executable(command_station
@@ -58,10 +42,7 @@ add_executable(command_station
 				include/visualizer.h
 				rc/command_station.qrc)
 target_include_directories(command_station PUBLIC include)
-target_link_libraries(command_station PUBLIC audio midi serial Qt5::Core Qt5::Widgets)
-
-add_executable(test_win_audio src/test_win_audio.cpp)
-target_link_libraries(test_win_audio winmm)
+target_link_libraries(command_station PUBLIC midi serial Qt5::Core Qt5::Widgets Qt5::Multimedia)
 
 add_executable(midi_win src/midi_in_sample.cpp)
 target_link_libraries(midi_win winmm)
