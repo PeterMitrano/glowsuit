@@ -21,24 +21,24 @@
 
 std::optional<json> load_suit_description();
 
-QString select_music_file(QWidget* parent);
+QString select_music_file(QWidget *parent);
 
-QString select_midi_file(QWidget* parent);
+QString select_midi_file(QWidget *parent);
 
 class MainWidget : public QWidget
 {
-	Q_OBJECT
+Q_OBJECT
 
 public:
 	virtual ~MainWidget();
 
-	MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget* parent = nullptr);
+	MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget *parent = nullptr);
 
 	void save_settings();
 
 	void restore_settings();
 
-	void closeEvent(QCloseEvent* event) override;
+	void closeEvent(QCloseEvent *event) override;
 
 	void set_state(QMediaPlayer::State state);
 
@@ -49,6 +49,7 @@ public:
 	void handle_cursor(QMediaPlayer::MediaStatus status);
 
 public slots:
+
 	void live_midi_changed(int state);
 
 	void play_pause_clicked();
@@ -71,6 +72,7 @@ public slots:
 
 
 signals:
+
 	void midi_file_changed(QString midi_filename);
 
 	void play();
@@ -81,7 +83,7 @@ signals:
 
 public:
 	Visualizer viz;
-	LiveMidiWorker live_midi_worker;
+	LiveMidiWorker *live_midi_worker{nullptr};
 	QString music_filename;
 	QString midi_filename;
 	QThread live_midi_thread;
@@ -89,19 +91,19 @@ public:
 	smf::MidiFile midifile;
 	std::map<unsigned int, State> states;
 	// TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
-	serial::Serial* xbee_serial{ nullptr };
+	serial::Serial *xbee_serial{nullptr};
 	std::vector<serial::PortInfo> ports;
-	QSettings* settings;
+	QSettings *settings;
 
 
 private:
 	Ui_MainWidget ui;
 
 	QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
-	QMediaPlayer* music_player{ nullptr };
+	QMediaPlayer *music_player{nullptr};
 	QThread midi_player_thread;
-	MidiFilePlayer* midi_file_player{ nullptr };
+	MidiFilePlayer *midi_file_player{nullptr};
 
-	qint64 duration{ 0 };
+	qint64 duration{0};
 
 };

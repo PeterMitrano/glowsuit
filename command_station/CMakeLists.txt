@@ -35,6 +35,7 @@ else ()
             include/midi/midi_file_player.h
             include/midi/linux/midi_input_linux.h)
     add_library(midi SHARED ${midi_src})
+    target_link_libraries(midi PUBLIC asound)
 endif ()
 target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)

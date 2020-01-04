@@ -32,8 +32,7 @@ std::optional<json> load_suit_description()
 MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget* parent)
 	: QWidget(parent),
 	viz(suit_description, num_channels),
-	num_channels(num_channels),
-	live_midi_worker(num_channels)
+	num_channels(num_channels)
 {
 	ui.setupUi(this);
 
@@ -45,6 +44,7 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	connect(ui.stop_button, &QAbstractButton::clicked, this, &MainWidget::stop);
 
 	// these are pointers because you can't use "this" in an the constructor initializer list
+    live_midi_worker = new LiveMidiWorker(num_channels, this);
 	music_player = new QMediaPlayer(this);
 
 	midi_file_player = new MidiFilePlayer();
@@ -73,16 +73,16 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
 	connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
 	connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
-	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &live_midi_worker, &LiveMidiWorker::octave_spinbox_changed);
+	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker, &LiveMidiWorker::octave_spinbox_changed);
 	connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player, &MidiFilePlayer::octave_spinbox_changed);
 
 	set_state(music_player->state());
 
 	// start a thread for receiving MIDI
-	live_midi_worker.moveToThread(&live_midi_thread);
-	QObject::connect(&live_midi_thread, &QThread::started, &live_midi_worker, &LiveMidiWorker::listen_for_midi);
-	QObject::connect(&live_midi_worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
-	QObject::connect(&live_midi_worker, &LiveMidiWorker::midi_event, &viz, &Visualizer::on_live_midi_event);
+	live_midi_worker->moveToThread(&live_midi_thread);
+	QObject::connect(&live_midi_thread, &QThread::started, live_midi_worker, &LiveMidiWorker::listen_for_midi);
+	QObject::connect(live_midi_worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
+	QObject::connect(live_midi_worker, &LiveMidiWorker::midi_event, &viz, &Visualizer::on_live_midi_event);
 	live_midi_thread.start();
 
 	// Populate list of serial ports
@@ -168,7 +168,7 @@ void MainWidget::xbee_port_changed(int index)
 	xbee_serial = new serial::Serial(port.port, baud_rate, serial::Timeout::simpleTimeout(1000));
 
 	// TODO: is this an error? possible data race
-	live_midi_worker.xbee_serial = xbee_serial;
+	live_midi_worker->xbee_serial = xbee_serial;
 	midi_file_player->xbee_serial = xbee_serial;
 }
 
