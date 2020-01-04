@@ -46,7 +46,6 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 
 	// these are pointers because you can't use "this" in an the constructor initializer list
 	music_player = new QMediaPlayer(this);
-	music_player->setNotifyInterval(10000);
 
 	midi_file_player = new MidiFilePlayer();
 	midi_file_player->start_thread();
@@ -55,9 +54,9 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 	ui.player_slider->setRange(0, music_player->duration() / 1000);
 
 	connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
+    connect(ui.player_slider, &QSlider::sliderMoved, midi_file_player, &MidiFilePlayer::seek);
 	connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
 	connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
-	connect(music_player, &QMediaPlayer::positionChanged, midi_file_player, &MidiFilePlayer::position_changed);
 	connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
 	connect(music_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &MainWidget::display_error_message);
 

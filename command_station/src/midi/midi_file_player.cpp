@@ -3,7 +3,8 @@
 #include <QThread>
 #include <iostream>
 
-auto to_ms(auto time_point)
+template<typename TimePoint>
+auto to_ms(TimePoint time_point)
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(time_point).count();
 }
@@ -149,8 +150,23 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
     }
 }
 
+void MidiFilePlayer::seek(int seconds)
+{
+    changed(seconds * 1000);
+}
+
 void MidiFilePlayer::position_changed(qint64 time_ms)
 {
+    changed(time_ms);
+}
+
+void MidiFilePlayer::changed(qint64 time_ms)
+{
+    if (states_vector.empty())
+    {
+        return;
+    }
+
     // restart the timer, start counting from time_ms
     // also reset the index to the midi event which is the next one after time_ms
     latest_timer_reference_ms = time_ms;
@@ -169,8 +185,8 @@ void MidiFilePlayer::position_changed(qint64 time_ms)
     auto const idx = std::distance(states_vector.begin(), find_it);
     if (idx < 0 || idx >= states_vector.size())
     {
-        // just give up
-        return;
+        // explode
+        throw std::runtime_error("couldn't find a valid state for this time");
     }
     current_state_idx = idx;
 }
