@@ -80,9 +80,12 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>50</width>
            <height>20</height>
           </size>
          </property>
@@ -93,35 +96,6 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QCheckBox" name="live_checkbox">
-             <property name="text">
-              <string>Live Midi?</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="midi_indicator_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-image: url(:/icons/midi-off.png);</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QLabel" name="octave_label">
              <property name="text">
               <string>Oct +/-</string>
@@ -130,6 +104,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="octave_spinbox">
+             <property name="toolTip">
+              <string>An offset for transposing MIDI from a file or from live MIDI</string>
+             </property>
              <property name="suffix">
               <string/>
              </property>
@@ -142,7 +119,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_5">
+            <spacer name="horizontalSpacer_6">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -157,63 +134,125 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="sub_controls_layout">
-           <item>
-            <layout class="QVBoxLayout" name="player_vertical_layout"/>
-           </item>
-           <item>
-            <widget class="QToolButton" name="stop_button">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset theme="media-playback-stop">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="play_button">
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset theme="media-playback-start">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="player_slider">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="player_time_label">
-             <property name="text">
-              <string>00:00/00:00</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
+          <widget class="QGroupBox" name="midi_file_group">
+           <property name="title">
+            <string>Midi File Controls</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QToolButton" name="stop_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>Stops playback and resets to the start</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset theme="media-playback-stop">
+                <normaloff>.</normaloff>.</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="play_button">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset theme="media-playback-start">
+                <normaloff>.</normaloff>.</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="player_slider">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="player_time_label">
+              <property name="text">
+               <string>00:00/00:00</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>36</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="live_midi_controls">
+           <property name="title">
+            <string>Live Midi Controls</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QCheckBox" name="live_checkbox">
+              <property name="toolTip">
+               <string>Enables visualization of live MIDI. Disables the ability to play from a midi file</string>
+              </property>
+              <property name="text">
+               <string>Live Midi?</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="midi_indicator_label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>blinks when a midi message is received, even if it's invalid or out of range</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-image: url(:/icons/midi-off.png);</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer">
@@ -237,6 +276,9 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>if red, don't show any of the EL wire visible only from in front</string>
              </property>
              <property name="styleSheet">
               <string notr="true">QPushButton {
@@ -274,6 +316,9 @@ color: #000000;
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>if red, don't show any of the EL wire visible only from behind</string>
              </property>
              <property name="styleSheet">
               <string notr="true">QPushButton {

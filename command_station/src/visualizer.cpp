@@ -1,13 +1,34 @@
+#include <fstream>
+
+#include <QFile>
+#include <QMessageBox>
 #include <QPainter>
 
 #include <visualizer.h>
 #include <common.h>
 
-Visualizer::Visualizer(std::optional<json> const &suit_description, size_t const num_channels, QWidget *parent)
-        : QWidget(parent),
-          suit_description(suit_description),
-          num_channels(num_channels)
+Visualizer::Visualizer(QWidget *parent) : QWidget(parent)
 {
+}
+
+int Visualizer::load_suit()
+{
+    if (!QFile::exists("suit.json"))
+    {
+        // TODO: use QMessageBox::warning
+        QMessageBox suit_description_message_box;
+        suit_description_message_box.setText(
+                "suit.json was not found, it should be in the same folder as the executable.");
+        suit_description_message_box.exec();
+    }
+    std::ifstream suit_description_file("suit.json");
+
+    json j;
+    suit_description_file >> j;
+    suit_description.emplace(j);
+
+    num_channels = suit_description.value()["channels"].size();
+
     width = num_suits * suit_width + offset_x * 2;
     on_channels.resize(num_suits);
     for (auto &suit : on_channels)
@@ -15,6 +36,7 @@ Visualizer::Visualizer(std::optional<json> const &suit_description, size_t const
         suit.resize(num_channels);
     }
     setMinimumSize(width, height);
+    return num_channels;
 }
 
 void Visualizer::paintEvent(QPaintEvent *event)
@@ -80,6 +102,7 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     pen.setColor(color);
                     pen.setWidth(2);
                     painter.setPen(pen);
+                    // TODO: add scale for viz
                     painter.drawEllipse(sx + static_cast<int>(circle["x"]),
                                         sy + static_cast<int>(circle["y"]),
                                         circle["r"],

@@ -30,80 +30,79 @@ class MainWidget : public QWidget
 Q_OBJECT
 
 public:
-	virtual ~MainWidget();
+    virtual ~MainWidget();
 
-	MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget *parent = nullptr);
+    explicit MainWidget(QWidget *parent = nullptr);
 
-	void save_settings();
+    void save_settings();
 
-	void restore_settings();
+    void restore_settings();
 
-	void closeEvent(QCloseEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
-	void set_state(QMediaPlayer::State state);
+    void set_state(QMediaPlayer::State state);
 
-	QMediaPlayer::State state() const;
+    QMediaPlayer::State state() const;
 
-	void update_duration_info(qint64 currentInfo);
+    void update_duration_info(qint64 currentInfo);
 
-	void handle_cursor(QMediaPlayer::MediaStatus status);
+    void handle_cursor(QMediaPlayer::MediaStatus status);
 
 public slots:
 
-	void live_midi_changed(int state);
+    void live_midi_changed(int state);
 
-	void play_pause_clicked();
+    void play_pause_clicked();
 
-	void midi_file_button_clicked();
+    void midi_file_button_clicked();
 
-	void music_file_button_clicked();
+    void music_file_button_clicked();
 
-	void xbee_port_changed(int index);
+    void xbee_port_changed(int index);
 
-	void seek(int seconds);
+    void seek(int seconds);
 
-	void duration_changed(qint64 duration);
+    void duration_changed(qint64 duration);
 
-	void position_changed(qint64 progress);
+    void position_changed(qint64 progress);
 
-	void status_changed(QMediaPlayer::MediaStatus status);
+    void status_changed(QMediaPlayer::MediaStatus status);
 
-	void display_error_message();
+    void display_error_message();
 
 
 signals:
 
-	void midi_file_changed(QString midi_filename);
+    void midi_file_changed(QString midi_filename);
 
-	void play();
+    void play();
 
-	void pause();
+    void pause();
 
-	void stop();
+    void stop();
 
 public:
-	Visualizer viz;
-	LiveMidiWorker *live_midi_worker{nullptr};
-	QString music_filename;
-	QString midi_filename;
-	QThread live_midi_thread;
-	size_t num_channels;
-	smf::MidiFile midifile;
-	std::map<unsigned int, State> states;
-	// TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
-	serial::Serial *xbee_serial{nullptr};
-	std::vector<serial::PortInfo> ports;
-	QSettings *settings;
+    Visualizer *visualizer{nullptr};
+    LiveMidiWorker *live_midi_worker{nullptr};
+    QString music_filename;
+    QString midi_filename;
+    QThread live_midi_thread;
+    smf::MidiFile midifile;
+    std::map<unsigned int, State> states;
+    // TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
+    serial::Serial *xbee_serial{nullptr};
+    std::vector<serial::PortInfo> ports;
+    QSettings *settings;
 
 
 private:
-	Ui_MainWidget ui;
+    Ui_MainWidget ui;
 
-	QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
-	QMediaPlayer *music_player{nullptr};
-	QThread midi_player_thread;
-	MidiFilePlayer *midi_file_player{nullptr};
+    QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
+    QMediaPlayer *music_player{nullptr};
+    QThread midi_player_thread;
+    MidiFilePlayer *midi_file_player{nullptr};
 
-	qint64 duration{0};
+    qint64 duration{0};
 
 };

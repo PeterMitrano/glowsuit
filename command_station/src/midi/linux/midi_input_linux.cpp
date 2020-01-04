@@ -5,14 +5,6 @@
 #include <sstream>
 #include <common.h>
 
-static snd_seq_t *seq_handle;
-static int in_port;
-
-// FIXME: proper error handling
-#define CHK(stmt, msg) if((stmt) < 0) {puts("ERROR: "#msg); exit(1);}
-
-unsigned int alsa_seq_type_to_midi_command(snd_seq_event_type_t type);
-
 unsigned int alsa_seq_type_to_midi_command(snd_seq_event_type_t type)
 {
     switch (type)
@@ -26,18 +18,32 @@ unsigned int alsa_seq_type_to_midi_command(snd_seq_event_type_t type)
     }
 }
 
-void midi_open()
+snd_seq_t *LiveMidiWorker::midi_open()
 {
-    CHK(snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0),
-        "Could not open sequencer");
+    snd_seq_t *seq_handle{nullptr};
+    int result;
+    result = snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0);
+    if (result < 0)
+    {
+        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to open midi sequencer"));
+    }
 
-    CHK(snd_seq_set_client_name(seq_handle, "glowsuit"),
-        "Could not set client name");
-    CHK(in_port = snd_seq_create_simple_port(seq_handle, "in",
-                                             SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
-                                             SND_SEQ_PORT_TYPE_APPLICATION),
-        "Could not open port");
+    result = snd_seq_set_client_name(seq_handle, "glowsuit");
+    if (result < 0)
+    {
+        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to name midi sequencer"));
+    }
+    result = snd_seq_create_simple_port(seq_handle, "in",
+                                        SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
+                                        SND_SEQ_PORT_TYPE_APPLICATION);
+    if (result < 0)
+    {
+        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to open port"));
+    }
+
     snd_seq_nonblock(seq_handle, 1);
+
+    return seq_handle;
 }
 
 LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget *parent_widget)
@@ -48,17 +54,18 @@ LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget *parent_widget)
 
 void LiveMidiWorker::listen_for_midi()
 {
-    auto return_code = start_midi();
-    if (return_code == -1)
-    {
-        //TODO handle failures here
-    }
+    start_midi();
     emit my_finished();
 }
 
-int LiveMidiWorker::start_midi()
+void LiveMidiWorker::start_midi()
 {
-    midi_open();
+    auto seq_handle = midi_open();
+    if (seq_handle == nullptr)
+    {
+        return;
+    }
+
     while (true)
     {
         if (QThread::currentThread()->isInterruptionRequested())

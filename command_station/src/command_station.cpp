@@ -34,16 +34,7 @@ int main(int argc, char** argv)
 {
 	QApplication app(argc, argv);
 
-	auto const suit_description = load_suit_description();
-	auto const num_channels = [&]() {
-		if (suit_description) {
-			return suit_description.value()["channels"].size();
-		}
-		// Default size is 6
-		return 6ul;
-	}();
-
-	MainWidget main_widget(suit_description, num_channels);
+	MainWidget main_widget;
 	main_widget.show();
 	return app.exec();
 }

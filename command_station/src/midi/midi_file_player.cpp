@@ -22,7 +22,7 @@ MidiFilePlayer::~MidiFilePlayer()
 void MidiFilePlayer::parse_midifile()
 {
     mutex.lock();
-    // TODO: make track number an argument?
+    // TODO: add a spinbox for the track number?
     auto const track = midifile[0];
     states_vector.clear();
     // Initial OFF message to turn every thing off
