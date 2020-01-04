@@ -34,8 +34,6 @@ public:
 
 	MainWidget(std::optional<json> suit_description, unsigned int num_channels, QWidget* parent = nullptr);
 
-	void setup_ui();
-
 	void save_settings();
 
 	void restore_settings();

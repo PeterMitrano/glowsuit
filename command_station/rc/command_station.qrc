@@ -5,5 +5,7 @@
   <qresource prefix="icons">
     <file>pause-solid.png</file>
     <file>play-solid.png</file>
+    <file>midi-on.png</file>
+    <file>midi-off.png</file>
   </qresource>
 </RCC>

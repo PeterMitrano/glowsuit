@@ -12,37 +12,41 @@ find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
 
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-	add_library(serial STATIC ${serial_src})
-else()
-	add_library(serial SHARED ${serial_src})
-endif()
+    add_library(serial STATIC ${serial_src})
+else ()
+    add_library(serial SHARED ${serial_src})
+endif ()
 target_include_directories(serial PUBLIC include)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-	target_link_libraries(serial PUBLIC setupapi)
-endif()
+    target_link_libraries(serial PUBLIC setupapi)
+endif ()
 
-file(GLOB_RECURSE midi_src src/midi/*.cpp)
-list(APPEND midi_src include/midi/midi_input.h include/midi/midi_file_player.h)
+file(GLOB midi_src src/midi/*.cpp)
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-	add_library(midi STATIC ${midi_src})
-else()
-	add_library(midi SHARED ${midi_src})
-endif()
+    list(APPEND midi_src
+            src/midi/win/midi_input_win.cpp
+            include/midi/midi_file_player.h
+            include/midi/win/midi_input_win.h)
+    add_library(midi STATIC ${midi_src})
+else ()
+    list(APPEND midi_src
+            src/midi/linux/midi_input_linux.cpp
+            include/midi/midi_file_player.h
+            include/midi/linux/midi_input_linux.h)
+    add_library(midi SHARED ${midi_src})
+endif ()
 target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
 
-# TODO: ifdefs so this works on linux too
-add_executable(command_station
-				WIN32
-				src/command_station.cpp
-				src/visualizer.cpp
-				src/main_widget.cpp
-				include/main_widget.h
-				include/visualizer.h
-				rc/command_station.qrc)
+set(command_station_src
+        src/command_station.cpp
+        src/visualizer.cpp
+        src/main_widget.cpp
+        include/main_widget.h
+        include/visualizer.h
+        rc/command_station.qrc)
+# win32 has no effect on osx/linux, so we can use it here without ifdefs
+add_executable(command_station WIN32 ${command_station_src})
 target_include_directories(command_station PUBLIC include)
 target_link_libraries(command_station PUBLIC midi serial Qt5::Core Qt5::Widgets Qt5::Multimedia)
-
-add_executable(midi_win src/midi_in_sample.cpp)
-target_link_libraries(midi_win winmm)

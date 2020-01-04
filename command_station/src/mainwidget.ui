@@ -100,6 +100,28 @@
             </widget>
            </item>
            <item>
+            <widget class="QLabel" name="midi_indicator_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-image: url(:/icons/midi-off.png);</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QLabel" name="octave_label">
              <property name="text">
               <string>Oct +/-</string>
@@ -116,13 +138,6 @@
              </property>
              <property name="maximum">
               <number>2</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="midi_indicator_label">
-             <property name="text">
-              <string/>
              </property>
             </widget>
            </item>
@@ -155,7 +170,8 @@
               <string>...</string>
              </property>
              <property name="icon">
-              <iconset theme="media-playback-stop"/>
+              <iconset theme="media-playback-stop">
+               <normaloff>.</normaloff>.</iconset>
              </property>
             </widget>
            </item>
@@ -165,7 +181,8 @@
               <string>...</string>
              </property>
              <property name="icon">
-              <iconset theme="media-playback-start"/>
+              <iconset theme="media-playback-start">
+               <normaloff>.</normaloff>.</iconset>
              </property>
             </widget>
            </item>
@@ -197,6 +214,19 @@
             </spacer>
            </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <layout class="QHBoxLayout" name="viz_controls_layout">

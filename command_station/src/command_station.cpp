@@ -1,5 +1,7 @@
 // Windows is a special header , it must go first
+#ifdef WIN32
 #include <Windows.h>
+#endif
 
 #include <bitset>
 #include <chrono>
@@ -18,7 +20,10 @@
 #include <visualizer.h>
 #include <main_widget.h>
 
+#ifdef win32
+// TODO: is this still really nessecary?
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+#endif
 
 using json = nlohmann::json;
 
@@ -35,7 +40,7 @@ int main(int argc, char** argv)
 			return suit_description.value()["channels"].size();
 		}
 		// Default size is 6
-		return 6u;
+		return 6ul;
 	}();
 
 	MainWidget main_widget(suit_description, num_channels);

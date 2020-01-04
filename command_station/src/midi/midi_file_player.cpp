@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include <common.h>
 #include <midi/midi_file_player.h>
 #include <QThread>
@@ -128,9 +127,6 @@ void MidiFilePlayer::position_changed(qint64 time_ms)
         auto const pair = states_vector[current_state_idx];
         auto const tick = pair.first;
         auto const state = pair.second;
-        char buff[100];
-        snprintf(buff, 100, "%d: %x %x %x %x\n", current_state_idx, state.data[0], state.data[1], state.data[2], state.data[3], state.data[4], state.data[5]);
-        OutputDebugString(buff);
         auto const onset_ms = static_cast<int>(midifile.getTimeInSeconds(tick) * 1000);
         if (onset_ms >= time_ms)
         {
