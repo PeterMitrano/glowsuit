@@ -3,7 +3,7 @@
 #include <QThread>
 #include <iostream>
 
-static std::chrono::high_resolution_clock::time_point last_t;
+//static std::chrono::high_resolution_clock::time_point last_t;
 
 template<typename TimePoint>
 auto to_ms(TimePoint time_point)
@@ -95,6 +95,9 @@ void MidiFilePlayer::start_thread()
             {
                 continue;
             }
+//            auto const now_t = std::chrono::high_resolution_clock::now();
+//            auto const dt = now_t - last_t;
+//            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(dt).count() << "us" << '\n';
 
             if (current_state_idx >= states_vector.size())
             {
@@ -109,15 +112,12 @@ void MidiFilePlayer::start_thread()
             // check if it's time to emit the next midi event based on the estimated current time
             auto const pair = states_vector[current_state_idx];
             auto const onset_ms = pair.first;
-            auto const state = pair.second;
             if (current_time_ms >= onset_ms)
             {
+
                 // visualizer
+                auto const state = pair.second;
                 emit_to_visualizer(state);
-//                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(dt).count() << "us" << '\n';
-//                auto const now = std::chrono::high_resolution_clock::now();
-//                auto const dt = now - last_t;
-//                last_t = std::chrono::high_resolution_clock::now();
 
                 // transmit
                 if (xbee_serial)
@@ -195,6 +195,7 @@ void MidiFilePlayer::play()
     latest_timer_reference_ms = current_time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
     playing = true;
+//    last_t = std::chrono::high_resolution_clock::now();
 }
 
 void MidiFilePlayer::pause()
