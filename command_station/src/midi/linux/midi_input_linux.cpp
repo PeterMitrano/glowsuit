@@ -77,6 +77,7 @@ void LiveMidiWorker::start_midi()
         auto const result = snd_seq_event_input(seq_handle, &ev);
         if (result == -EAGAIN)
         {
+            QThread::msleep(10);
             continue;
         }
 

@@ -10,6 +10,7 @@
 #include <QSettings>
 #include <QString>
 #include <QThread>
+#include <QTimer>
 #include <QWidget>
 
 #include <../src/ui_mainwidget.h>
@@ -49,6 +50,7 @@ public:
     void handle_cursor(QMediaPlayer::MediaStatus status);
 
 public slots:
+    void update_serial_port_list();
 
     void live_midi_changed(int state);
 
@@ -104,5 +106,5 @@ private:
     MidiFilePlayer *midi_file_player{nullptr};
 
     qint64 duration{0};
-
+    QTimer *timer{nullptr};
 };

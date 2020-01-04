@@ -1,6 +1,8 @@
 #include <fstream>
+#include <iostream>
 
 #include <QFile>
+#include <chrono>
 #include <QMessageBox>
 #include <QPainter>
 
@@ -15,11 +17,11 @@ int Visualizer::load_suit()
 {
     if (!QFile::exists("suit.json"))
     {
-        // TODO: use QMessageBox::warning
-        QMessageBox suit_description_message_box;
-        suit_description_message_box.setText(
-                "suit.json was not found, it should be in the same folder as the executable.");
-        suit_description_message_box.exec();
+        QMessageBox::warning(this,
+                             tr("Error"),
+                             tr("suit.json was not found, it should be in the same folder as the executable."
+                                "You'll need to rerun the program once you've put suit.json in the right location"));
+        return 0;
     }
     std::ifstream suit_description_file("suit.json");
 
@@ -29,14 +31,14 @@ int Visualizer::load_suit()
 
     num_channels = suit_description.value()["channels"].size();
 
-    width = num_suits * suit_width + offset_x * 2;
+    width = static_cast<int>(scale * num_suits * suit_width + offset_x * 2);
     on_channels.resize(num_suits);
     for (auto &suit : on_channels)
     {
         suit.resize(num_channels);
     }
-    setMinimumSize(width, height);
-    return num_channels;
+    setMinimumSize(width, static_cast<int>(scale * height));
+    return static_cast<int>(num_channels);
 }
 
 void Visualizer::paintEvent(QPaintEvent *event)
@@ -76,10 +78,11 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     pen.setColor(color);
                     pen.setWidth(2);
                     painter.setPen(pen);
-                    painter.drawLine(sx + static_cast<int>(line["x1"]),
-                                     sy + static_cast<int>(line["y1"]),
-                                     sx + static_cast<int>(line["x2"]),
-                                     sy + static_cast<int>(line["y2"]));
+                    auto const x1 = static_cast<int>(scale * (sx + static_cast<int>(line["x1"])));
+                    auto const y1 = static_cast<int>(scale * (sy + static_cast<int>(line["y1"])));
+                    auto const x2 = static_cast<int>(scale * (sx + static_cast<int>(line["x2"])));
+                    auto const y2 = static_cast<int>(scale * (sy + static_cast<int>(line["y2"])));
+                    painter.drawLine(x1, y1, x2, y2);
                 }
             }
             if (channel_description.contains("circles"))
@@ -103,10 +106,10 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     pen.setWidth(2);
                     painter.setPen(pen);
                     // TODO: add scale for viz
-                    painter.drawEllipse(sx + static_cast<int>(circle["x"]),
-                                        sy + static_cast<int>(circle["y"]),
-                                        circle["r"],
-                                        circle["r"]);
+                    auto const x = static_cast<int>(scale * (sx + static_cast<int>(circle["x"])));
+                    auto const y = static_cast<int>(scale * (sy + static_cast<int>(circle["y"])));
+                    auto const radius = static_cast<int>(scale * static_cast<int>(circle["r"]));
+                    painter.drawEllipse(x, y, radius, radius);
                 }
             }
             ++channel_idx;
@@ -153,10 +156,10 @@ void Visualizer::generic_on_midi_event(unsigned int suit_number, unsigned int co
     if (command == 128)
     {
 
-        on_channels[suit_number - 1][channel_number] = 0;
+        on_channels[suit_number - 1][channel_number] = false;
     } else if (command == 144)
     {
-        on_channels[suit_number - 1][channel_number] = 1;
+        on_channels[suit_number - 1][channel_number] = true;
     } else
     {
         // just ignore any other types of midi messages

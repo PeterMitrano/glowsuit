@@ -44,8 +44,6 @@ public slots:
 
     void changed(qint64 time_ms);
 
-    void position_changed(qint64 time_ms);
-
     void seek(int seconds);
 
     void play();
@@ -65,6 +63,7 @@ private:
     bool killed{false};
     std::thread thread;
     qint64 latest_timer_reference_ms{0};
+    qint64 current_time_ms{0};
     size_t current_state_idx{0ul};
     std::chrono::high_resolution_clock::time_point latest_clock_reference;
 };

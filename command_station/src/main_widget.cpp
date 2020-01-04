@@ -68,16 +68,9 @@ MainWidget::MainWidget(QWidget *parent)
     QObject::connect(live_midi_worker, &LiveMidiWorker::midi_event, visualizer, &Visualizer::on_live_midi_event);
     live_midi_thread.start();
 
-    // Populate list of serial ports
-    // TODO: make this update somewhere, probably just poll every second
-    ports = serial::list_ports();
-    for (auto &port : ports)
-    {
-        if (port.description.find("Serial Port") != std::string::npos)
-        {
-            ui.xbee_port_combobox->insertItem(0, QString::fromStdString(port.port));
-        }
-    }
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &MainWidget::update_serial_port_list);
+    timer->start(1000);
 
     QObject::connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
                      &MainWidget::xbee_port_changed);
@@ -315,4 +308,16 @@ void MainWidget::handle_cursor(QMediaPlayer::MediaStatus status)
     else
         unsetCursor();
 #endif
+}
+
+void MainWidget::update_serial_port_list()
+{
+    ports = serial::list_ports();
+    for (auto &port : ports)
+    {
+        if (port.description.find("Serial Port") != std::string::npos)
+        {
+            ui.xbee_port_combobox->insertItem(0, QString::fromStdString(port.port));
+        }
+    }
 }

@@ -3,6 +3,8 @@
 #include <QThread>
 #include <iostream>
 
+static std::chrono::high_resolution_clock::time_point last_t;
+
 template<typename TimePoint>
 auto to_ms(TimePoint time_point)
 {
@@ -43,7 +45,6 @@ void MidiFilePlayer::parse_midifile()
             auto const data = event.data();
             // why are all of these off by an octave?
             int const bit_idx = static_cast<int>(data[1]) - midi_note_offset + 12 * octave_offset;
-            // TODO: something's wrong with my test midi file - this shouldn't be here
             if (bit_idx < 0 || bit_idx >= 6 * 8)
             {
                 continue;
@@ -71,7 +72,6 @@ void MidiFilePlayer::parse_midifile()
                 break;
             }
         }
-        // FIXME: instead of tick we store onset
         auto const onset_ms = static_cast<int>(midifile.getTimeInSeconds(tick) * 1000);
         states_vector.emplace_back(onset_ms, current_state);
     }
@@ -103,7 +103,7 @@ void MidiFilePlayer::start_thread()
 
             auto const now = std::chrono::high_resolution_clock::now();
             auto const dt_since_latest_reference_ms = to_ms(now - latest_clock_reference);
-            auto const current_time_ms = dt_since_latest_reference_ms + latest_timer_reference_ms;
+            current_time_ms = dt_since_latest_reference_ms + latest_timer_reference_ms;
 
             // get current onset directory from states_vector
             // check if it's time to emit the next midi event based on the estimated current time
@@ -114,6 +114,10 @@ void MidiFilePlayer::start_thread()
             {
                 // visualizer
                 emit_to_visualizer(state);
+//                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(dt).count() << "us" << '\n';
+//                auto const now = std::chrono::high_resolution_clock::now();
+//                auto const dt = now - last_t;
+//                last_t = std::chrono::high_resolution_clock::now();
 
                 // transmit
                 if (xbee_serial)
@@ -155,11 +159,6 @@ void MidiFilePlayer::seek(int seconds)
     changed(seconds * 1000);
 }
 
-void MidiFilePlayer::position_changed(qint64 time_ms)
-{
-    changed(time_ms);
-}
-
 void MidiFilePlayer::changed(qint64 time_ms)
 {
     if (states_vector.empty())
@@ -193,6 +192,7 @@ void MidiFilePlayer::changed(qint64 time_ms)
 
 void MidiFilePlayer::play()
 {
+    latest_timer_reference_ms = current_time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
     playing = true;
 }
