@@ -50,7 +50,10 @@ void Visualizer::paintEvent(QPaintEvent *event)
                             color = QColor(r, g, b, 255);
                         }
                     }
-                    painter.setPen(color);
+                    QPen pen;
+                    pen.setColor(color);
+                    pen.setWidth(2);
+                    painter.setPen(pen);
                     painter.drawLine(sx + static_cast<int>(line["x1"]),
                                      sy + static_cast<int>(line["y1"]),
                                      sx + static_cast<int>(line["x2"]),
@@ -73,7 +76,10 @@ void Visualizer::paintEvent(QPaintEvent *event)
                             color = QColor(r, g, b, 255);
                         }
                     }
-                    painter.setPen(color);
+                    QPen pen;
+                    pen.setColor(color);
+                    pen.setWidth(2);
+                    painter.setPen(pen);
                     painter.drawEllipse(sx + static_cast<int>(circle["x"]),
                                         sy + static_cast<int>(circle["y"]),
                                         circle["r"],

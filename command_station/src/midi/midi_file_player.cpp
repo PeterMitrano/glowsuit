@@ -1,9 +1,14 @@
 #include <common.h>
 #include <midi/midi_file_player.h>
 #include <QThread>
+#include <iostream>
 
+auto to_ms(auto time_point)
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(time_point).count();
+}
 
-MidiFilePlayer::MidiFilePlayer(QWidget* parent) : QObject(parent)
+MidiFilePlayer::MidiFilePlayer(QWidget *parent) : QObject(parent)
 {
 }
 
@@ -35,9 +40,9 @@ void MidiFilePlayer::parse_midifile()
         {
             auto const data = event.data();
             // why are all of these off by an octave?
-            auto const bit_idx = (static_cast<int>(data[1]) - midi_note_offset + 12 * octave_offset);
+            int const bit_idx = static_cast<int>(data[1]) - midi_note_offset + 12 * octave_offset;
             // TODO: something's wrong with my test midi file - this shouldn't be here
-            if (bit_idx < 0)
+            if (bit_idx < 0 || bit_idx >= 6 * 8)
             {
                 continue;
             }
@@ -53,24 +58,22 @@ void MidiFilePlayer::parse_midifile()
             {
                 auto const future_data = future_event.data();
                 auto const future_bit_idx = (static_cast<int>(future_data[1]) - midi_note_offset + 12 * octave_offset);
-                if (future_bit_idx < 0)
+                if (future_bit_idx < 0 || future_bit_idx >= 6 * 8)
                 {
                     continue;
                 }
                 current_state.set(future_bit_idx, future_event.isNoteOn());
                 event_idx += 1;
-            }
-            else
+            } else
             {
                 break;
             }
         }
-        states_vector.emplace_back(tick, current_state);
+        // FIXME: instead of tick we store onset
+        auto const onset_ms = static_cast<int>(midifile.getTimeInSeconds(tick) * 1000);
+        states_vector.emplace_back(onset_ms, current_state);
     }
 
-    // FInal OFF message to turn every thing off
-    //auto const final_tick = track[size - 1].tick + 1;
-    //states_vector.emplace_back(final_tick, State{});
     mutex.unlock();
 }
 
@@ -82,22 +85,48 @@ void MidiFilePlayer::midi_file_changed(QString midi_filename)
 
 void MidiFilePlayer::start_thread()
 {
-    //auto func = [&]() {
-    //    while (!killed)
-    //    {
-    //        QThread::msleep(50);
-        //}
-    //};
+    auto func = [&]()
+    {
+        while (!killed)
+        {
+            if (!playing)
+            {
+                continue;
+            }
+
+            auto const now = std::chrono::high_resolution_clock::now();
+            auto const dt_since_latest_reference_ms = to_ms(now - latest_clock_reference);
+            auto const current_time_ms = dt_since_latest_reference_ms + latest_timer_reference_ms;
+
+            // get current onset directory from states_vector
+            // check if it's time to emit the next midi event based on the estimated current time
+            auto const pair = states_vector[current_state_idx];
+            auto const onset_ms = pair.first;
+            auto const state = pair.second;
+            if (current_time_ms >= onset_ms)
+            {
+                // visualizer
+                emit_to_visualizer(state);
+
+                // transmit
+                if (xbee_serial)
+                {
+                    xbee_serial->write(state.data.data(), message_size);
+                }
+                ++current_state_idx;
+            }
+        }
+    };
     // start running func in another thread.
-    //thread = std::thread(func);
+    thread = std::thread(func);
 }
 
-#include <sstream>
-void MidiFilePlayer::emit_to_visualizer(State const& state)
+void MidiFilePlayer::emit_to_visualizer(State const &state)
 {
-    for (auto suit_idx{ 0u }; suit_idx < num_suits; ++suit_idx) {
+    for (auto suit_idx{0u}; suit_idx < num_suits; ++suit_idx)
+    {
         auto const byte = state.data[suit_idx];
-        for (auto bit_idx{ 0u }; bit_idx < 8; ++bit_idx)
+        for (auto bit_idx{0u}; bit_idx < 8; ++bit_idx)
         {
             auto const bit = (byte >> bit_idx) & 0x1;
             auto const command = bit == 1 ? 144 : 128;
@@ -108,38 +137,41 @@ void MidiFilePlayer::emit_to_visualizer(State const& state)
     }
 
     // transmit
-    if (xbee_serial != nullptr) {
+    if (xbee_serial != nullptr)
+    {
         xbee_serial->write(state.data.data(), message_size);
     }
 }
 
 void MidiFilePlayer::position_changed(qint64 time_ms)
 {
-    if (!playing)
+    // restart the timer, start counting from time_ms
+    // also reset the index to the midi event which is the next one after time_ms
+    latest_timer_reference_ms = time_ms;
+    latest_clock_reference = std::chrono::high_resolution_clock::now();
+    auto predicate = [&](std::pair<int, State> const &pair)
     {
+        auto const onset_ms = pair.first;
+        return onset_ms >= time_ms;
+    };
+    auto find_it = std::find_if(states_vector.begin(), states_vector.end(), predicate);
+    if (find_it == states_vector.cend())
+    {
+        // just ignore this
         return;
     }
-
-    for (auto current_state_idx = 0u; current_state_idx <= states_vector.size(); ++current_state_idx)
-        //auto current_state_idx = 0u;
-        //for (auto const& pair : states_vector)
+    auto const idx = std::distance(states_vector.begin(), find_it);
+    if (idx < 0 || idx >= states_vector.size())
     {
-        auto const pair = states_vector[current_state_idx];
-        auto const tick = pair.first;
-        auto const state = pair.second;
-        auto const onset_ms = static_cast<int>(midifile.getTimeInSeconds(tick) * 1000);
-        if (onset_ms >= time_ms)
-        {
-            emit_to_visualizer(state);
-            break;
-        }
-        ++current_state_idx;
+        // just give up
+        return;
     }
-
+    current_state_idx = idx;
 }
 
 void MidiFilePlayer::play()
 {
+    latest_clock_reference = std::chrono::high_resolution_clock::now();
     playing = true;
 }
 
@@ -150,6 +182,7 @@ void MidiFilePlayer::pause()
 
 void MidiFilePlayer::stop()
 {
+    current_state_idx = 0;
     playing = false;
 }
 
