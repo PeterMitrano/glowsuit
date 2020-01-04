@@ -31,9 +31,9 @@ void midi_open()
     CHK(snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0),
         "Could not open sequencer");
 
-    CHK(snd_seq_set_client_name(seq_handle, "Midi Listener"),
+    CHK(snd_seq_set_client_name(seq_handle, "glowsuit"),
         "Could not set client name");
-    CHK(in_port = snd_seq_create_simple_port(seq_handle, "listen:in",
+    CHK(in_port = snd_seq_create_simple_port(seq_handle, "in",
                                              SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
                                              SND_SEQ_PORT_TYPE_APPLICATION),
         "Could not open port");
