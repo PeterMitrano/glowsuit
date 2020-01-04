@@ -23,8 +23,9 @@ void MidiFilePlayer::parse_midifile()
     mutex.lock();
     // TODO: make track number an argument?
     auto const track = midifile[0];
-    // Initial OFF message to turn every thing off
     states_vector.clear();
+    // Initial OFF message to turn every thing off
+    states_vector.emplace_back(0, State{});
     State current_state;
     auto const size = track.size();
     for (int event_idx = 0; event_idx < size; ++event_idx)
@@ -90,6 +91,11 @@ void MidiFilePlayer::start_thread()
         while (!killed)
         {
             if (!playing)
+            {
+                continue;
+            }
+
+            if (current_state_idx >= states_vector.size())
             {
                 continue;
             }

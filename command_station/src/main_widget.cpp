@@ -46,6 +46,7 @@ MainWidget::MainWidget(std::optional<json> suit_description, unsigned int num_ch
 
 	// these are pointers because you can't use "this" in an the constructor initializer list
 	music_player = new QMediaPlayer(this);
+	music_player->setNotifyInterval(10000);
 
 	midi_file_player = new MidiFilePlayer();
 	midi_file_player->start_thread();
