@@ -8,6 +8,34 @@
     <file>checkbox_checked_pressed.png</file>
     <file>checkbox_checked.png</file>
     <file>checkbox_indeterminate_disabled.png</file>
+    <file>arrow_down_disabled.png</file>
+    <file>arrow_down_focus.png</file>
+    <file>arrow_down_pressed.png</file>
+    <file>arrow_down.png</file>
+    <file>arrow_up_disabled.png</file>
+    <file>arrow_up_focus.png</file>
+    <file>arrow_up_pressed.png</file>
+    <file>arrow_up.png</file>
+    <file>window_close_disabled.png</file>
+    <file>window_close_focus.png</file>
+    <file>window_close_pressed.png</file>
+    <file>window_close.png</file>
+    <file>window_grip_disabled.png</file>
+    <file>window_grip_focus.png</file>
+    <file>window_grip_pressed.png</file>
+    <file>window_grip.png</file>
+    <file>window_minimize_disabled.png</file>
+    <file>window_minimize_focus.png</file>
+    <file>window_minimize_pressed.png</file>
+    <file>window_minimize.png</file>
+    <file>window_undock_disabled.png</file>
+    <file>window_undock_focus.png</file>
+    <file>window_undock_pressed.png</file>
+    <file>window_undock.png</file>
+    <file>base_icon_disabled.png</file>
+    <file>base_icon_focus.png</file>
+    <file>base_icon_pressed.png</file>
+    <file>base_icon.png</file>
     <file>checkbox_indeterminate_focus.png</file>
     <file>checkbox_indeterminate_pressed.png</file>
     <file>checkbox_indeterminate.png</file>

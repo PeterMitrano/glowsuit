@@ -52,6 +52,11 @@ public:
     void blink_midi_indicator();
 
 public slots:
+
+    void event_count_changed(int event_count);
+
+    void track_range_changed(int min, int max);
+
     void update_serial_port_list();
 
     void live_midi_changed(int state);

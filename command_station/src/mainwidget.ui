@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>610</width>
-    <height>301</height>
+    <width>588</width>
+    <height>328</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Glowsuit Command Station</string>
@@ -46,8 +52,14 @@
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
              <layout class="QFormLayout" name="formLayout_2">
+              <property name="labelAlignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
               <item row="1" column="0">
                <widget class="QPushButton" name="select_music_file_button">
+                <property name="toolTip">
+                 <string>select a WAV file. MP3 cannot be used.</string>
+                </property>
                 <property name="text">
                  <string>Music File</string>
                 </property>
@@ -62,8 +74,11 @@
               </item>
               <item row="2" column="0">
                <widget class="QPushButton" name="select_midi_file_button">
+                <property name="toolTip">
+                 <string>Select a MIDI file</string>
+                </property>
                 <property name="text">
-                 <string>Midi File</string>
+                 <string>MIDI File</string>
                 </property>
                </widget>
               </item>
@@ -74,22 +89,28 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Track #</string>
-                </property>
-               </widget>
-              </item>
               <item row="3" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QSpinBox" name="spinBox">
+                 <widget class="QSpinBox" name="track_spinbox">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>Change which track in the MIDI file will play. You probably want the track which the most events. Some DAWs produce extra tracks with a few meta-events.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="event_count_label">
+                  <property name="toolTip">
+                   <string>The number of MIDI events (on &amp; off events) in the selected MIDI file</string>
+                  </property>
+                  <property name="text">
+                   <string># Events</string>
                   </property>
                  </widget>
                 </item>
@@ -107,6 +128,16 @@
                  </spacer>
                 </item>
                </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="track_label">
+                <property name="text">
+                 <string>Track #</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -161,6 +192,9 @@
          </item>
          <item>
           <layout class="QFormLayout" name="formLayout_3">
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+           </property>
            <item row="0" column="0">
             <widget class="QLabel" name="xbee_port_label">
              <property name="text">
@@ -208,7 +242,7 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>40</height>
+             <height>5</height>
             </size>
            </property>
           </spacer>
@@ -289,6 +323,9 @@
                 <width>16</width>
                 <height>16</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>blinks when any kind of MIDI event is detected. If this blink and one of the lights doesn't, that probably means you've played a note that's too high or two low.</string>
               </property>
               <property name="styleSheet">
                <string notr="true">border: none;</string>
@@ -416,6 +453,9 @@ color: #000000;
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="scale_spinbox">
+             <property name="toolTip">
+              <string>Change the size of the suits in the visualizer</string>
+             </property>
              <property name="decimals">
               <number>1</number>
              </property>
@@ -462,7 +502,7 @@ color: #000000;
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>40</height>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -471,7 +511,41 @@ color: #000000;
        </item>
       </layout>
      </item>
+     <item>
+      <widget class="QGroupBox" name="visualizer_group">
+       <property name="toolTip">
+        <string>suits will be draw here if a suit.json file was loaded correctly.</string>
+       </property>
+       <property name="title">
+        <string>Visualizer</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+       </layout>
+      </widget>
+     </item>
     </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::MinimumExpanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

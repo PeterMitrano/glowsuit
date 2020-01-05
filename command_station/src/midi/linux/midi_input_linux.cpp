@@ -1,3 +1,4 @@
+#include <QAbstractEventDispatcher>
 #include <QMessageBox>
 #include <QThread>
 
@@ -72,6 +73,9 @@ void LiveMidiWorker::start_midi()
         {
             break;
         }
+
+        // since this is an infinite loop, in order to receive Qt signals we need to call this manually
+        thread()->eventDispatcher()->processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
 
         snd_seq_event_t *ev = nullptr;
         auto const result = snd_seq_event_input(seq_handle, &ev);

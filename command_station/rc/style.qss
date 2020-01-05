@@ -424,7 +424,7 @@ QMenu::indicator:exclusive:checked:selected {
 
 QMenu::right-arrow {
     margin: 5px;
-    image: url(:/icons/right_arrow.png)
+    image: url(:/icons/arrow_right.png)
 }
 
 /* QAbstractItemView ------------------------------------------------------ */
@@ -487,7 +487,7 @@ QScrollBar::handle:horizontal:hover {
 
 QScrollBar::add-line:horizontal {
     margin: 0px 0px 0px 0px;
-    border-image: url(:/icons/right_arrow_disabled.png);
+    border-image: url(:/icons/arrow_right_disabled.png);
     width: 10px;
     height: 10px;
     subcontrol-position: right;
@@ -496,7 +496,7 @@ QScrollBar::add-line:horizontal {
 
 QScrollBar::sub-line:horizontal {
     margin: 0px 3px 0px 3px;
-    border-image: url(:/icons/left_arrow_disabled.png);
+    border-image: url(:/icons/arrow_left_disabled.png);
     height: 10px;
     width: 10px;
     subcontrol-position: left;
@@ -505,7 +505,7 @@ QScrollBar::sub-line:horizontal {
 
 QScrollBar::add-line:horizontal:hover,
 QScrollBar::add-line:horizontal:on {
-    border-image: url(:/icons/right_arrow.png);
+    border-image: url(:/icons/arrow_right.png);
     height: 10px;
     width: 10px;
     subcontrol-position: right;
@@ -514,7 +514,7 @@ QScrollBar::add-line:horizontal:on {
 
 QScrollBar::sub-line:horizontal:hover,
 QScrollBar::sub-line:horizontal:on {
-    border-image: url(:/icons/left_arrow.png);
+    border-image: url(:/icons/arrow_left.png);
     height: 10px;
     width: 10px;
     subcontrol-position: left;
@@ -556,7 +556,7 @@ QScrollBar::handle:vertical:hover {
 
 QScrollBar::sub-line:vertical {
     margin: 3px 0px 3px 0px;
-    border-image: url(:/icons/up_arrow_disabled.png);
+    border-image: url(:/icons/arrow_up_disabled.png);
     height: 10px;
     width: 10px;
     subcontrol-position: top;
@@ -565,7 +565,7 @@ QScrollBar::sub-line:vertical {
 
 QScrollBar::add-line:vertical {
     margin: 3px 0px 3px 0px;
-    border-image: url(:/icons/down_arrow_disabled.png);
+    border-image: url(:/icons/arrow_down_disabled.png);
     height: 10px;
     width: 10px;
     subcontrol-position: bottom;
@@ -574,7 +574,7 @@ QScrollBar::add-line:vertical {
 
 QScrollBar::sub-line:vertical:hover,
 QScrollBar::sub-line:vertical:on {
-    border-image: url(:/icons/up_arrow.png);
+    border-image: url(:/icons/arrow_up.png);
     height: 10px;
     width: 10px;
     subcontrol-position: top;
@@ -583,7 +583,7 @@ QScrollBar::sub-line:vertical:on {
 
 QScrollBar::add-line:vertical:hover,
 QScrollBar::add-line:vertical:on {
-    border-image: url(:/icons/down_arrow.png);
+    border-image: url(:/icons/arrow_down.png);
     height: 10px;
     width: 10px;
     subcontrol-position: bottom;
@@ -686,7 +686,7 @@ QToolButton#qt_toolbar_ext_button {
     background: #31363B;
     border: 0px;
     color: #EFF0F1;
-    image: url(:/icons/right_arrow.png);
+    image: url(:/icons/arrow_right.png);
 }
 
 /* QAbstractSpinBox ------------------------------------------------------- */
@@ -714,13 +714,13 @@ QAbstractSpinBox:up-button {
 QAbstractSpinBox::up-arrow,
 QAbstractSpinBox::up-arrow:disabled,
 QAbstractSpinBox::up-arrow:off {
-    image: url(:/icons/up_arrow_disabled.png);
+    image: url(:/icons/arrow_up_disabled.png);
     width: 9px;
     height: 9px;
 }
 
 QAbstractSpinBox::up-arrow:hover {
-    image: url(:/icons/up_arrow.png);
+    image: url(:/icons/arrow_up.png);
 }
 
 QAbstractSpinBox:down-button {
@@ -734,13 +734,13 @@ QAbstractSpinBox:down-button {
 QAbstractSpinBox::down-arrow,
 QAbstractSpinBox::down-arrow:disabled,
 QAbstractSpinBox::down-arrow:off {
-    image: url(:/icons/down_arrow_disabled.png);
+    image: url(:/icons/arrow_down_disabled.png);
     width: 9px;
     height: 9px;
 }
 
 QAbstractSpinBox::down-arrow:hover {
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
 }
 
 QAbstractSpinBox:hover{
@@ -993,13 +993,13 @@ QToolButton::menu-button:checked:hover {
 }
 
 QToolButton::menu-indicator {
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
     top: -8px;     /* shift it a bit */
     left: -4px;    /* shift it a bit */
 }
 
 QToolButton::menu-arrow {
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
 }
 
 QToolButton::menu-arrow:open {
@@ -1066,13 +1066,13 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(:/icons/down_arrow_disabled.png);
+    image: url(:/icons/arrow_down_disabled.png);
 }
 
 QComboBox::down-arrow:on,
 QComboBox::down-arrow:hover,
 QComboBox::down-arrow:focus {
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
 }
 
 /* QSlider ---------------------------------------------------------------- */
@@ -1411,19 +1411,19 @@ QTabBar::tab:right:!selected:hover {
 }
 
 QTabBar QToolButton::right-arrow:enabled {
-    image: url(:/icons/right_arrow.png);
+    image: url(:/icons/arrow_right.png);
 }
 
 QTabBar QToolButton::left-arrow:enabled {
-    image: url(:/icons/left_arrow.png);
+    image: url(:/icons/arrow_left.png);
 }
 
 QTabBar QToolButton::right-arrow:disabled {
-    image: url(:/icons/right_arrow_disabled.png);
+    image: url(:/icons/arrow_right_disabled.png);
 }
 
 QTabBar QToolButton::left-arrow:disabled {
-    image: url(:/icons/left_arrow_disabled.png);
+    image: url(:/icons/arrow_left_disabled.png);
 }
 
 
@@ -1703,7 +1703,7 @@ QHeaderView::down-arrow {
     width: 16px;
     height: 16px;
     border-right: 1px solid #232629;
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
 }
 
 QHeaderView::up-arrow {
@@ -1711,7 +1711,7 @@ QHeaderView::up-arrow {
     width: 16px;
     height: 16px;
     border-right: 1px solid #232629;
-    image: url(:/icons/up_arrow.png);
+    image: url(:/icons/arrow_up.png);
 }
 
 /* QToolBox -------------------------------------------------------------- */
@@ -1840,13 +1840,13 @@ QDateEdit::drop-down {
 }
 
 QDateEdit::down-arrow {
-    image: url(:/icons/down_arrow_disabled.png);
+    image: url(:/icons/arrow_down_disabled.png);
 }
 
 QDateEdit::down-arrow:on,
 QDateEdit::down-arrow:hover,
 QDateEdit::down-arrow:focus {
-    image: url(:/icons/down_arrow.png);
+    image: url(:/icons/arrow_down.png);
 }
 
 QDateEdit QAbstractItemView {

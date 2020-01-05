@@ -2,6 +2,7 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QStringBuilder>
 #include <QPushButton>
 #include <QDoubleSpinBox>
 #include <QTime>
@@ -23,7 +24,7 @@ MainWidget::MainWidget(QWidget *parent)
     // these are pointers because you can't use "this" in an the constructor initializer list
     visualizer = new Visualizer(this);
     auto const num_channels = visualizer->load_suit();
-    ui.verticalLayout->addWidget(visualizer);
+    ui.visualizer_group->layout()->addWidget(visualizer);
     live_midi_worker = new LiveMidiWorker(num_channels, this);
     music_player = new QMediaPlayer(this);
 
@@ -31,7 +32,7 @@ MainWidget::MainWidget(QWidget *parent)
     midi_file_player->start_thread();
     connect(this, &MainWidget::midi_file_changed, midi_file_player, &MidiFilePlayer::midi_file_changed);
     connect(midi_file_player, &MidiFilePlayer::midi_event, visualizer, &Visualizer::on_midi_file_event);
-    ui.player_slider->setRange(0, music_player->duration() / 1000);
+    ui.player_slider->setRange(0, static_cast<int>(music_player->duration() / 1000));
 
     connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
     connect(ui.player_slider, &QSlider::sliderMoved, midi_file_player, &MidiFilePlayer::seek);
@@ -51,14 +52,16 @@ MainWidget::MainWidget(QWidget *parent)
 
     connect(ui.front_button, &QPushButton::clicked, visualizer, &Visualizer::front_status_clicked);
     connect(ui.back_button, &QPushButton::clicked, visualizer, &Visualizer::back_status_clicked);
+    connect(midi_file_player, &MidiFilePlayer::track_range_changed, this,
+            &MainWidget::track_range_changed);
+    connect(ui.track_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
+            &MidiFilePlayer::track_changed);
     connect(ui.scale_spinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), visualizer,
             &Visualizer::viz_scale_changed);
     connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
     connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
     connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
-    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
-            &LiveMidiWorker::octave_spinbox_changed);
-    // FIXME: this isn't working, and MIDI if off by something on windows?!
+    connect(midi_file_player, &MidiFilePlayer::event_count_changed, this, &MainWidget::event_count_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
             &MidiFilePlayer::octave_spinbox_changed);
 
@@ -89,6 +92,10 @@ MainWidget::MainWidget(QWidget *parent)
 
         ui.midi_file_group->setEnabled(false);
     }
+
+    // FIXME: this isn't working, and MIDI if off by something on windows?!
+    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
+            &LiveMidiWorker::octave_spinbox_changed);
 }
 
 MainWidget::~MainWidget()
@@ -169,6 +176,7 @@ void MainWidget::save_settings()
     settings->setValue("gui/octave", ui.octave_spinbox->value());
     settings->setValue("gui/live_checkbox", ui.live_checkbox->isChecked());
     settings->setValue("gui/scale", ui.scale_spinbox->value());
+    settings->setValue("gui/track", ui.track_spinbox->value());
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
 }
@@ -179,9 +187,6 @@ void MainWidget::restore_settings()
     QCoreApplication::setApplicationName("Glowsuit");
     settings = new QSettings();
 
-    ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
-    ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
-    ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
     music_filename = settings->value("files/music").toString();
     ui.music_filename_label->setText(music_filename);
     midi_filename = settings->value("files/midi").toString();
@@ -189,6 +194,12 @@ void MainWidget::restore_settings()
 
     music_player->setMedia(QUrl::fromLocalFile(music_filename));
     emit midi_file_changed(midi_filename);
+
+    ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
+    ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
+    ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
+    ui.track_spinbox->setValue(settings->value("gui/track").toInt());
+
     emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
     ui.midi_file_group->setEnabled(!ui.live_checkbox->isChecked());
@@ -342,4 +353,15 @@ void MainWidget::blink_midi_indicator()
     {
         ui.midi_indicator_button->setEnabled(false);
     });
+}
+
+void MainWidget::track_range_changed(int const min, int const max)
+{
+    ui.track_spinbox->setRange(min, max);
+}
+
+void MainWidget::event_count_changed(int const event_count)
+{
+    auto const str = QString("%1 Events").arg(event_count);
+    ui.event_count_label->setText(str);
 }
