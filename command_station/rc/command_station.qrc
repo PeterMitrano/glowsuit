@@ -3,6 +3,17 @@
     <file>style.qss</file>
   </qresource>
   <qresource prefix="icons">
+    <file>checkbox_checked_disabled.png</file>
+    <file>checkbox_checked_focus.png</file>
+    <file>checkbox_checked_pressed.png</file>
+    <file>checkbox_checked.png</file>
+    <file>checkbox_indeterminate_disabled.png</file>
+    <file>checkbox_indeterminate_focus.png</file>
+    <file>checkbox_indeterminate_pressed.png</file>
+    <file>checkbox_indeterminate.png</file>
+    <file>checkbox_unchecked_disabled.png</file>
+    <file>checkbox_unchecked_focus.png</file>
+    <file>checkbox_unchecked.png</file>
     <file>pause-solid.png</file>
     <file>play-solid.png</file>
     <file>midi-on.png</file>

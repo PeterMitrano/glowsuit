@@ -11,11 +11,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
 
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
-if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-    add_library(serial STATIC ${serial_src})
-else ()
-    add_library(serial SHARED ${serial_src})
-endif ()
+add_library(serial STATIC ${serial_src})
 target_include_directories(serial PUBLIC include)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
@@ -34,8 +30,8 @@ else ()
             src/midi/linux/midi_input_linux.cpp
             include/midi/midi_file_player.h
             include/midi/linux/midi_input_linux.h)
-    add_library(midi SHARED ${midi_src})
-    target_link_libraries(midi PUBLIC asound)
+    add_library(midi STATIC ${midi_src})
+    target_link_libraries(midi PUBLIC pthread asound)
 endif ()
 target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)

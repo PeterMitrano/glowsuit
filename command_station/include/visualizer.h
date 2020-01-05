@@ -28,7 +28,7 @@ public:
     std::vector<std::vector<bool>> on_channels;
     bool front = true;
     bool back = true;
-    double scale{2.0};
+    double scale{1.0};
     std::optional<json> suit_description;
     bool viz_from_live_midi{false};
 

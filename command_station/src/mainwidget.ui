@@ -364,6 +364,13 @@ color: #000000;
             </widget>
            </item>
            <item>
+            <widget class="QLabel" name="scale_label">
+             <property name="text">
+              <string>Scale</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QDoubleSpinBox" name="scale_spinbox">
              <property name="decimals">
               <number>1</number>
