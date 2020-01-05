@@ -119,7 +119,4 @@ void CALLBACK LiveMidiWorker::callback(HMIDIIN hMidiIn, UINT wMsg, DWORD dwParam
 void LiveMidiWorker::octave_spinbox_changed(int value)
 {
     octave_offset = value;
-    char buff[100];
-    snprintf(buff, 100, "%d\n", octave_offset);
-    OutputDebugString(buff);
 }
