@@ -3,7 +3,8 @@
 #include <QThread>
 #include <iostream>
 
-auto to_ms(auto time_point)
+template <typename T>
+auto to_ms(T time_point)
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(time_point).count();
 }

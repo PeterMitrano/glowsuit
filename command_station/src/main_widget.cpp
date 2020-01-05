@@ -58,6 +58,7 @@ MainWidget::MainWidget(QWidget *parent)
     connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
             &LiveMidiWorker::octave_spinbox_changed);
+    // FIXME: this isn't working, and MIDI if off by something on windows?!
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
             &MidiFilePlayer::octave_spinbox_changed);
 

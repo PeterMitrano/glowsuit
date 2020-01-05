@@ -20,11 +20,6 @@
 #include <visualizer.h>
 #include <main_widget.h>
 
-#ifdef win32
-// TODO: is this still really nessecary?
-Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
-#endif
-
 using json = nlohmann::json;
 
 using namespace std::chrono_literals;

@@ -104,7 +104,6 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     pen.setColor(color);
                     pen.setWidth(get_pen_width());
                     painter.setPen(pen);
-                    // TODO: add scale for viz
                     auto const x = static_cast<int>(scale * (sx + static_cast<int>(circle["x"])));
                     auto const y = static_cast<int>(scale * (sy + static_cast<int>(circle["y"])));
                     auto const radius = static_cast<int>(scale * static_cast<int>(circle["r"]));
