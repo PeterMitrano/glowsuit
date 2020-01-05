@@ -14,6 +14,10 @@
 
 using OnsetStatePair = std::pair<int, State>;
 using OnsetStateVec = std::vector<OnsetStatePair>;
+using TimePoint = std::chrono::high_resolution_clock::time_point;
+
+qint64 current_song_time(TimePoint clock_reference, qint64 song_time_reference);
+
 class MidiFilePlayer : public QObject
 {
 Q_OBJECT
@@ -42,8 +46,6 @@ public slots:
 
     void midi_file_changed(QString midi_filename);
 
-    void changed(qint64 time_ms);
-
     void seek(int seconds);
 
     void play();
@@ -62,8 +64,8 @@ private:
     QMutex mutex;
     bool killed{false};
     std::thread thread;
-    qint64 latest_timer_reference_ms{0};
-    qint64 current_time_ms{0};
+    qint64 latest_song_time_reference{0};
+    qint64 current_song_time_ms{0};
     size_t current_state_idx{0ul};
-    std::chrono::high_resolution_clock::time_point latest_clock_reference;
+    TimePoint latest_clock_reference;
 };

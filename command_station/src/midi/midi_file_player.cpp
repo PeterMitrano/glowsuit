@@ -3,10 +3,7 @@
 #include <QThread>
 #include <iostream>
 
-//static std::chrono::high_resolution_clock::time_point last_t;
-
-template<typename TimePoint>
-auto to_ms(TimePoint time_point)
+auto to_ms(auto time_point)
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(time_point).count();
 }
@@ -104,15 +101,12 @@ void MidiFilePlayer::start_thread()
                 continue;
             }
 
-            auto const now = std::chrono::high_resolution_clock::now();
-            auto const dt_since_latest_reference_ms = to_ms(now - latest_clock_reference);
-            current_time_ms = dt_since_latest_reference_ms + latest_timer_reference_ms;
+            current_song_time_ms = current_song_time(latest_clock_reference, latest_song_time_reference);
 
-            // get current onset directory from states_vector
             // check if it's time to emit the next midi event based on the estimated current time
             auto const pair = states_vector[current_state_idx];
             auto const onset_ms = pair.first;
-            if (current_time_ms >= onset_ms)
+            if (current_song_time_ms >= onset_ms)
             {
 
                 // visualizer
@@ -156,11 +150,6 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
 
 void MidiFilePlayer::seek(int seconds)
 {
-    changed(seconds * 1000);
-}
-
-void MidiFilePlayer::changed(qint64 time_ms)
-{
     if (states_vector.empty())
     {
         return;
@@ -168,7 +157,8 @@ void MidiFilePlayer::changed(qint64 time_ms)
 
     // restart the timer, start counting from time_ms
     // also reset the index to the midi event which is the next one after time_ms
-    latest_timer_reference_ms = time_ms;
+    auto const time_ms = seconds * 1000;
+    latest_song_time_reference = time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
     auto predicate = [&](std::pair<int, State> const &pair)
     {
@@ -188,14 +178,16 @@ void MidiFilePlayer::changed(qint64 time_ms)
         throw std::runtime_error("couldn't find a valid state for this time");
     }
     current_state_idx = idx;
+    // FIXME: this API sucks
+    current_song_time_ms = current_song_time(latest_clock_reference,latest_song_time_reference);
 }
 
 void MidiFilePlayer::play()
 {
-    latest_timer_reference_ms = current_time_ms;
+    latest_song_time_reference = current_song_time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
+    current_song_time_ms = current_song_time(latest_clock_reference,latest_song_time_reference);
     playing = true;
-//    last_t = std::chrono::high_resolution_clock::now();
 }
 
 void MidiFilePlayer::pause()
@@ -205,8 +197,8 @@ void MidiFilePlayer::pause()
 
 void MidiFilePlayer::stop()
 {
-    current_state_idx = 0;
     playing = false;
+    seek(0);
 }
 
 void MidiFilePlayer::octave_spinbox_changed(int value)
@@ -214,4 +206,11 @@ void MidiFilePlayer::octave_spinbox_changed(int value)
     mutex.lock();
     octave_offset = value;
     mutex.unlock();
+}
+
+qint64 current_song_time(TimePoint const clock_reference, qint64 const song_time_reference)
+{
+    auto const now = std::chrono::high_resolution_clock::now();
+    auto const dt_since_latest_reference_ms = to_ms(now - clock_reference);
+    return dt_since_latest_reference_ms + song_time_reference;
 }
