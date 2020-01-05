@@ -3,7 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QTime>
 
 #include <common.h>
@@ -51,6 +51,8 @@ MainWidget::MainWidget(QWidget *parent)
 
     connect(ui.front_button, &QPushButton::clicked, visualizer, &Visualizer::front_status_clicked);
     connect(ui.back_button, &QPushButton::clicked, visualizer, &Visualizer::back_status_clicked);
+    connect(ui.scale_spinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), visualizer,
+            &Visualizer::viz_scale_changed);
     connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
     connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
     connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
@@ -66,7 +68,7 @@ MainWidget::MainWidget(QWidget *parent)
     connect(&live_midi_thread, &QThread::started, live_midi_worker, &LiveMidiWorker::listen_for_midi);
     connect(live_midi_worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
     connect(live_midi_worker, &LiveMidiWorker::midi_event, visualizer, &Visualizer::on_live_midi_event);
-    connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::on_any_event);
+    connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::any_event);
     live_midi_thread.start();
 
     timer = new QTimer(this);
@@ -165,6 +167,7 @@ void MainWidget::save_settings()
 {
     settings->setValue("gui/octave", ui.octave_spinbox->value());
     settings->setValue("gui/live_checkbox", ui.live_checkbox->isChecked());
+    settings->setValue("gui/scale", ui.scale_spinbox->value());
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
 }
@@ -176,6 +179,7 @@ void MainWidget::restore_settings()
     settings = new QSettings();
 
     ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
+    ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
     ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
     music_filename = settings->value("files/music").toString();
     ui.music_filename_label->setText(music_filename);
@@ -184,6 +188,7 @@ void MainWidget::restore_settings()
 
     music_player->setMedia(QUrl::fromLocalFile(music_filename));
     emit midi_file_changed(midi_filename);
+    emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
     ui.midi_file_group->setEnabled(!ui.live_checkbox->isChecked());
 }
@@ -324,7 +329,7 @@ void MainWidget::update_serial_port_list()
     }
 }
 
-void MainWidget::on_any_event()
+void MainWidget::any_event()
 {
     blink_midi_indicator();
 }
@@ -332,7 +337,8 @@ void MainWidget::on_any_event()
 void MainWidget::blink_midi_indicator()
 {
     ui.midi_indicator_button->setEnabled(true);
-    QTimer::singleShot(50, ui.midi_indicator_button, [&](){
+    QTimer::singleShot(50, ui.midi_indicator_button, [&]()
+    {
         ui.midi_indicator_button->setEnabled(false);
     });
 }

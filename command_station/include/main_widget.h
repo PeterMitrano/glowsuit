@@ -74,7 +74,7 @@ public slots:
 
     void display_error_message();
 
-    void on_any_event();
+    void any_event();
 
 signals:
 

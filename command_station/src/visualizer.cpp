@@ -11,6 +11,7 @@
 
 Visualizer::Visualizer(QWidget *parent) : QWidget(parent)
 {
+    resize();
 }
 
 int Visualizer::load_suit()
@@ -31,13 +32,11 @@ int Visualizer::load_suit()
 
     num_channels = suit_description.value()["channels"].size();
 
-    width = static_cast<int>(scale * num_suits * suit_width + offset_x * 2);
     on_channels.resize(num_suits);
     for (auto &suit : on_channels)
     {
         suit.resize(num_channels);
     }
-    setMinimumSize(width, static_cast<int>(scale * height));
     return static_cast<int>(num_channels);
 }
 
@@ -76,7 +75,7 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     }
                     QPen pen;
                     pen.setColor(color);
-                    pen.setWidth(2);
+                    pen.setWidth(get_pen_width());
                     painter.setPen(pen);
                     auto const x1 = static_cast<int>(scale * (sx + static_cast<int>(line["x1"])));
                     auto const y1 = static_cast<int>(scale * (sy + static_cast<int>(line["y1"])));
@@ -103,7 +102,7 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     }
                     QPen pen;
                     pen.setColor(color);
-                    pen.setWidth(2);
+                    pen.setWidth(get_pen_width());
                     painter.setPen(pen);
                     // TODO: add scale for viz
                     auto const x = static_cast<int>(scale * (sx + static_cast<int>(circle["x"])));
@@ -166,4 +165,22 @@ void Visualizer::generic_on_midi_event(unsigned int suit_number, unsigned int co
         return;
     }
     update();
+}
+
+int Visualizer::get_pen_width() const
+{
+    return std::max(1, static_cast<int>(scale * 2));
+}
+
+void Visualizer::viz_scale_changed(double viz_scale)
+{
+    this->scale = viz_scale;
+    resize();
+    update();
+}
+
+void Visualizer::resize()
+{
+    auto const width = static_cast<int>(scale * num_suits * suit_width + offset_x * 2);
+    setMinimumSize(width, static_cast<int>(scale * base_height));
 }

@@ -30,11 +30,17 @@ using json = nlohmann::json;
 using namespace std::chrono_literals;
 
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	QApplication app(argc, argv);
+    QApplication app(argc, argv);
 
-	MainWidget main_widget;
-	main_widget.show();
-	return app.exec();
+    QFile styleFile(":/style.qss");
+    styleFile.open(QFile::ReadOnly);
+
+    QString style(styleFile.readAll());
+    app.setStyleSheet(style);
+
+    MainWidget main_widget;
+    main_widget.show();
+    return app.exec();
 }

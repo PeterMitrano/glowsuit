@@ -148,7 +148,14 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QComboBox" name="xbee_port_combobox"/>
+            <widget class="QComboBox" name="xbee_port_combobox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -156,6 +163,9 @@
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::MinimumExpanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -166,22 +176,6 @@
           </spacer>
          </item>
         </layout>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::MinimumExpanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>50</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <layout class="QVBoxLayout" name="controls_layout">
@@ -263,8 +257,8 @@
               </property>
               <property name="icon">
                <iconset resource="../rc/command_station.qrc">
-                <normaloff>:/icons/midi-on.png</normaloff>
-                <normalon>:/icons/midi-off.png</normalon>:/icons/midi-on.png</iconset>
+                <normaloff>:/icons/midi-off.png</normaloff>
+                <normalon>:/icons/midi-on.png</normalon>:/icons/midi-off.png</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -286,19 +280,6 @@
             </item>
            </layout>
           </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
          </item>
          <item>
           <layout class="QHBoxLayout" name="viz_controls_layout">
@@ -383,6 +364,25 @@ color: #000000;
             </widget>
            </item>
            <item>
+            <widget class="QDoubleSpinBox" name="scale_spinbox">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>5.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -397,12 +397,31 @@ color: #000000;
            </item>
           </layout>
          </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::MinimumExpanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
         </layout>
        </item>
        <item>
-        <spacer name="horizontalSpacer_3">
+        <spacer name="horizontalSpacer_7">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>

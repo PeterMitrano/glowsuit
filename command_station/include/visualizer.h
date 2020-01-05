@@ -22,20 +22,25 @@ public:
     int offset_x = 10;
     int offset_y = 10;
     int suit_width = 100;
-    int width = 0;
-    int height = 200;
-    int left = 1366 - width - 10;
-    int top = 10;
-    QColor off_color{50, 50, 50, 255};
+    int const base_height = 200;
+    QColor off_color{45, 48, 51, 255};
     unsigned int num_channels = 0;
     std::vector<std::vector<bool>> on_channels;
     bool front = true;
     bool back = true;
-    double const scale{2.0};
+    double scale{2.0};
     std::optional<json> suit_description;
     bool viz_from_live_midi{false};
 
     int load_suit();
+
+    [[nodiscard]] int get_pen_width() const;
+
+    void resize();
+
+public slots:
+
+    void viz_scale_changed(double viz_scale);
 
     void front_status_clicked(bool checked);
 
