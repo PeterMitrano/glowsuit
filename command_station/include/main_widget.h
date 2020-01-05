@@ -49,6 +49,8 @@ public:
 
     void handle_cursor(QMediaPlayer::MediaStatus status);
 
+    void blink_midi_indicator();
+
 public slots:
     void update_serial_port_list();
 
@@ -72,6 +74,7 @@ public slots:
 
     void display_error_message();
 
+    void on_any_event();
 
 signals:
 

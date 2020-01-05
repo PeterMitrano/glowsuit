@@ -81,6 +81,8 @@ void LiveMidiWorker::start_midi()
             continue;
         }
 
+        emit any_event();
+
         if (ev->type != SND_SEQ_EVENT_NOTEON && ev->type != SND_SEQ_EVENT_NOTEOFF)
         {
             continue;

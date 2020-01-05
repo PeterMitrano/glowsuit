@@ -30,6 +30,8 @@ public slots:
 
 signals:
 
+    void any_event();
+
     void midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
     void my_finished();

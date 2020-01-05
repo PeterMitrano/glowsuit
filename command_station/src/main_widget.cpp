@@ -63,9 +63,10 @@ MainWidget::MainWidget(QWidget *parent)
 
     // start a thread for receiving MIDI
     live_midi_worker->moveToThread(&live_midi_thread);
-    QObject::connect(&live_midi_thread, &QThread::started, live_midi_worker, &LiveMidiWorker::listen_for_midi);
-    QObject::connect(live_midi_worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
-    QObject::connect(live_midi_worker, &LiveMidiWorker::midi_event, visualizer, &Visualizer::on_live_midi_event);
+    connect(&live_midi_thread, &QThread::started, live_midi_worker, &LiveMidiWorker::listen_for_midi);
+    connect(live_midi_worker, &LiveMidiWorker::my_finished, &live_midi_thread, &QThread::quit);
+    connect(live_midi_worker, &LiveMidiWorker::midi_event, visualizer, &Visualizer::on_live_midi_event);
+    connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::on_any_event);
     live_midi_thread.start();
 
     timer = new QTimer(this);
@@ -136,6 +137,7 @@ void MainWidget::live_midi_changed(int state)
     {
         visualizer->viz_from_live_midi = true;
         ui.midi_file_group->setEnabled(false);
+        emit stop();
     } else if (state == Qt::Unchecked)
     {
         visualizer->viz_from_live_midi = false;
@@ -320,4 +322,17 @@ void MainWidget::update_serial_port_list()
             ui.xbee_port_combobox->insertItem(0, QString::fromStdString(port.port));
         }
     }
+}
+
+void MainWidget::on_any_event()
+{
+    blink_midi_indicator();
+}
+
+void MainWidget::blink_midi_indicator()
+{
+    ui.midi_indicator_button->setEnabled(true);
+    QTimer::singleShot(50, ui.midi_indicator_button, [&](){
+        ui.midi_indicator_button->setEnabled(false);
+    });
 }
