@@ -1,3 +1,5 @@
+#include <QEventLoop>
+#include <QAbstractEventDispatcher>
 #include <QMessageBox>
 
 #include <midi/win/midi_input_win.h>
@@ -58,6 +60,9 @@ int LiveMidiWorker::start_midi()
         {
             break;
         }
+
+        thread()->eventDispatcher()->processEvents(QEventLoop::AllEvents);
+
         if (!_kbhit())
         {
             Sleep(100);
