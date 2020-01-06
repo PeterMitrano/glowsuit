@@ -6,6 +6,6 @@ SUITS:
 [ ] put connections on the front
 
 COMMAND_STATION
-[ ] pause/play with space bar
+[x] pause/play with space bar
 [ ] h to hide/unhide the controls
 [x] button to send all on/off message

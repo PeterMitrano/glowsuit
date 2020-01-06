@@ -16,6 +16,9 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Glowsuit Command Station</string>
   </property>
@@ -24,9 +27,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QVBoxLayout" name="vertical_layout">
+    <layout class="QVBoxLayout" name="main_layout">
      <item>
-      <layout class="QHBoxLayout" name="horizontal_layout" stretch="1,0">
+      <layout class="QHBoxLayout" name="controls_layout" stretch="1,0">
        <property name="leftMargin">
         <number>10</number>
        </property>
@@ -162,6 +165,9 @@
               </item>
               <item>
                <widget class="QToolButton" name="play_button">
+                <property name="focusPolicy">
+                 <enum>Qt::StrongFocus</enum>
+                </property>
                 <property name="text">
                  <string>...</string>
                 </property>
@@ -173,6 +179,9 @@
               </item>
               <item>
                <widget class="QSlider" name="player_slider">
+                <property name="focusPolicy">
+                 <enum>Qt::StrongFocus</enum>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -250,7 +259,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="controls_layout">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -312,6 +321,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="midi_indicator_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -323,6 +335,9 @@
                 <width>16</width>
                 <height>16</height>
                </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
               </property>
               <property name="toolTip">
                <string>blinks when any kind of MIDI event is detected. If this blink and one of the lights doesn't, that probably means you've played a note that's too high or two low.</string>
@@ -580,6 +595,23 @@ color: #000000;
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>play_button</tabstop>
+  <tabstop>player_slider</tabstop>
+  <tabstop>xbee_port_combobox</tabstop>
+  <tabstop>octave_spinbox</tabstop>
+  <tabstop>live_checkbox</tabstop>
+  <tabstop>all_off_button</tabstop>
+  <tabstop>all_on_button</tabstop>
+  <tabstop>front_button</tabstop>
+  <tabstop>back_button</tabstop>
+  <tabstop>scale_spinbox</tabstop>
+  <tabstop>select_music_file_button</tabstop>
+  <tabstop>select_midi_file_button</tabstop>
+  <tabstop>track_spinbox</tabstop>
+  <tabstop>stop_button</tabstop>
+  <tabstop>midi_indicator_button</tabstop>
+ </tabstops>
  <resources>
   <include location="../rc/command_station.qrc"/>
  </resources>

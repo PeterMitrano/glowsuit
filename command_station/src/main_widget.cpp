@@ -66,6 +66,8 @@ MainWidget::MainWidget(QWidget *parent)
     connect(midi_file_player, &MidiFilePlayer::event_count_changed, this, &MainWidget::event_count_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
             &MidiFilePlayer::octave_spinbox_changed);
+    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
+            &LiveMidiWorker::octave_spinbox_changed);
 
     set_state(music_player->state());
 
@@ -83,7 +85,7 @@ MainWidget::MainWidget(QWidget *parent)
     connect(timer, &QTimer::timeout, this, &MainWidget::update_serial_port_list);
     timer->start(1000);
 
-    QObject::connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
                      &MainWidget::xbee_port_changed);
 
     restore_settings();
@@ -96,10 +98,6 @@ MainWidget::MainWidget(QWidget *parent)
 
         ui.midi_file_group->setEnabled(false);
     }
-
-    // FIXME: this isn't working, and MIDI if off by something on windows?!
-    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
-            &LiveMidiWorker::octave_spinbox_changed);
 }
 
 MainWidget::~MainWidget()
@@ -390,4 +388,25 @@ void MainWidget::all_off_clicked()
             emit gui_midi_event(suit_idx, midi_note_off, channel_idx);
         }
     }
+}
+
+void MainWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    auto const key = event->key();
+    if (key == Qt::Key_H)
+    {
+        controls_hidden = !controls_hidden;
+        if (controls_hidden)
+        {
+            // TODO: hide everything in controls_layout
+        } else
+        {
+            // TODO: un-hide everything in controls_layout
+        }
+    }
+    else if (key == Qt::Key_Space)
+    {
+        // Toggle play/pause
+    }
+
 }

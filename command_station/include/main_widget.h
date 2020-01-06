@@ -41,6 +41,8 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
+    void keyReleaseEvent(QKeyEvent *event) override;
+
     void set_state(QMediaPlayer::State state);
 
     QMediaPlayer::State state() const;
@@ -122,4 +124,6 @@ private:
     qint64 duration{0};
     QTimer *timer{nullptr};
     int num_channels{0};
+    bool controls_hidden{false};
+    QLayoutItem *controls_layout_item{nullptr};
 };
