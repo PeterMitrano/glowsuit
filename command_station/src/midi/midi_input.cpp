@@ -2,50 +2,10 @@
 #include <QMessageBox>
 #include <QThread>
 
-#include <midi/linux/midi_input_linux.h>
+#include <midi/midi_input.h>
 #include <sstream>
 #include <common.h>
 
-unsigned int alsa_seq_type_to_midi_command(snd_seq_event_type_t type)
-{
-    switch (type)
-    {
-        case SND_SEQ_EVENT_NOTEOFF:
-            return midi_note_off;
-        case SND_SEQ_EVENT_NOTEON:
-            return midi_note_on;
-        default:
-            return 0;
-    }
-}
-
-snd_seq_t *LiveMidiWorker::midi_open()
-{
-    snd_seq_t *seq_handle{nullptr};
-    int result;
-    result = snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0);
-    if (result < 0)
-    {
-        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to open midi sequencer"));
-    }
-
-    result = snd_seq_set_client_name(seq_handle, "glowsuit");
-    if (result < 0)
-    {
-        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to name midi sequencer"));
-    }
-    result = snd_seq_create_simple_port(seq_handle, "in",
-                                        SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
-                                        SND_SEQ_PORT_TYPE_APPLICATION);
-    if (result < 0)
-    {
-        QMessageBox::warning(parent_widget, tr("ALSA Error"), tr("failed to open port"));
-    }
-
-    snd_seq_nonblock(seq_handle, 1);
-
-    return seq_handle;
-}
 
 LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget *parent_widget)
         : QObject(nullptr),
@@ -61,11 +21,11 @@ void LiveMidiWorker::listen_for_midi()
 
 void LiveMidiWorker::start_midi()
 {
-    auto seq_handle = midi_open();
-    if (seq_handle == nullptr)
-    {
-        return;
-    }
+    // Check available ports.
+    midiin.openVirtualPort("glowsuit:in");
+
+    // Ignore sysex, timing, or active sensing messages.
+    midiin.ignoreTypes(true, true, true);
 
     while (true)
     {
@@ -77,23 +37,22 @@ void LiveMidiWorker::start_midi()
         // since this is an infinite loop, in order to receive Qt signals we need to call this manually
         thread()->eventDispatcher()->processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
 
-        snd_seq_event_t *ev = nullptr;
-        auto const result = snd_seq_event_input(seq_handle, &ev);
-        if (result == -EAGAIN)
-        {
-            QThread::msleep(10);
+        // 0 means no message we ready
+        std::vector<unsigned char> message;
+        if (midiin.getMessage(&message) == 0.0) {
             continue;
         }
 
         emit any_event();
 
-        if (ev->type != SND_SEQ_EVENT_NOTEON && ev->type != SND_SEQ_EVENT_NOTEOFF)
+        auto const command = static_cast<int>(message[0]);
+
+        if (command != midi_note_off && command != midi_note_on)
         {
             continue;
         }
 
-        auto const command = alsa_seq_type_to_midi_command(ev->type);
-        auto const pitch = static_cast<int>(ev->data.note.note);
+        auto const pitch = static_cast<int>(message[1]);
         int const bit_idx = pitch - midi_note_offset + 12 * octave_offset;
 
         if (bit_idx < 0 || bit_idx >= 6 * 8)

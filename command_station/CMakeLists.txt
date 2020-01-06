@@ -30,13 +30,15 @@ if (WIN32)
             include/midi/midi_file_player.h
             include/midi/win/midi_input_win.h)
     add_library(midi STATIC ${midi_src})
+    target_compile_definitions(midi PUBLIC __WINDOWS_MM_)
 elseif (UNIX AND NOT APPLE)
     list(APPEND midi_src
-            src/midi/linux/midi_input_linux.cpp
+            src/midi/midi_input.cpp
             include/midi/midi_file_player.h
-            include/midi/linux/midi_input_linux.h)
+            include/midi/midi_input.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC pthread asound)
+    target_compile_definitions(midi PUBLIC __LINUX_ALSA__)
 elseif (APPLE)
     list(APPEND midi_src
             src/midi/osx/midi_input_osx.cpp
@@ -50,6 +52,7 @@ elseif (APPLE)
             "-framework CoreFoundation"
             ${IOKIT_LIBRARY}
             ${FOUNDATION_LIBRARY})
+    target_compile_definitions(midi PUBLIC __MACOSX_CORE__)
 endif ()
 target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
