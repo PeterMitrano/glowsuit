@@ -102,10 +102,10 @@ void CALLBACK LiveMidiWorker::callback(HMIDIIN hMidiIn, UINT wMsg, DWORD dwParam
         emit midi_event(suit_number, command, channel_number);
 
         // update the current state and send the data
-        if (command == 128) {
+        if (command == midi_note_off) {
             current_state.set(bit_idx, false);
         }
-        else if (command == 144) {
+        else if (command == midi_note_on) {
             current_state.set(bit_idx, true);
         }
         else {

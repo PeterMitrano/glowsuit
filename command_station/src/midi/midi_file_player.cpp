@@ -141,7 +141,7 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
         for (auto bit_idx{0u}; bit_idx < 8; ++bit_idx)
         {
             auto const bit = (byte >> bit_idx) & 0x1;
-            auto const command = bit == 1 ? 144 : 128;
+            auto const command = bit == 1 ? midi_note_on : midi_note_off;
             auto const channel_number = bit_idx;
 
             emit midi_event(suit_idx + 1, command, channel_number);

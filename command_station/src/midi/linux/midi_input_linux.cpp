@@ -11,9 +11,9 @@ unsigned int alsa_seq_type_to_midi_command(snd_seq_event_type_t type)
     switch (type)
     {
         case SND_SEQ_EVENT_NOTEOFF:
-            return 128;
+            return midi_note_off;
         case SND_SEQ_EVENT_NOTEON:
-            return 144;
+            return midi_note_on;
         default:
             return 0;
     }
@@ -109,10 +109,10 @@ void LiveMidiWorker::start_midi()
         emit midi_event(suit_number, command, channel_number);
 
         // update the current state and send the data
-        if (command == 128)
+        if (command == midi_note_off)
         {
             current_state.set(bit_idx, false);
-        } else if (command == 144)
+        } else if (command == midi_note_on)
         {
             current_state.set(bit_idx, true);
         } else

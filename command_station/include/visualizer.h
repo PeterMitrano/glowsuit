@@ -17,8 +17,6 @@ Q_OBJECT
 public:
     Visualizer(QWidget *parent = nullptr);
 
-    void generic_on_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
-
     int offset_x = 10;
     int offset_y = 10;
     int suit_width = 100;
@@ -49,6 +47,8 @@ public slots:
     void on_live_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
     void on_midi_file_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
+
+    void generic_on_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

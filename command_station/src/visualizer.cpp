@@ -151,11 +151,11 @@ void Visualizer::generic_on_midi_event(unsigned int suit_number, unsigned int co
     {
         return;
     }
-    if (command == 128)
+    if (command == midi_note_off)
     {
 
         on_channels[suit_number - 1][channel_number] = false;
-    } else if (command == 144)
+    } else if (command == midi_note_on)
     {
         on_channels[suit_number - 1][channel_number] = true;
     } else

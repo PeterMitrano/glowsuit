@@ -23,7 +23,7 @@ MainWidget::MainWidget(QWidget *parent)
 
     // these are pointers because you can't use "this" in an the constructor initializer list
     visualizer = new Visualizer(this);
-    auto const num_channels = visualizer->load_suit();
+    num_channels = visualizer->load_suit();
     ui.visualizer_group->layout()->addWidget(visualizer);
     live_midi_worker = new LiveMidiWorker(num_channels, this);
     music_player = new QMediaPlayer(this);
@@ -60,6 +60,8 @@ MainWidget::MainWidget(QWidget *parent)
             &Visualizer::viz_scale_changed);
     connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
     connect(ui.select_midi_file_button, &QPushButton::clicked, this, &MainWidget::midi_file_button_clicked);
+    connect(ui.all_on_button, &QPushButton::clicked, this, &MainWidget::all_on_clicked);
+    connect(ui.all_off_button, &QPushButton::clicked, this, &MainWidget::all_off_clicked);
     connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
     connect(midi_file_player, &MidiFilePlayer::event_count_changed, this, &MainWidget::event_count_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
@@ -74,6 +76,8 @@ MainWidget::MainWidget(QWidget *parent)
     connect(live_midi_worker, &LiveMidiWorker::midi_event, visualizer, &Visualizer::on_live_midi_event);
     connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::any_event);
     live_midi_thread.start();
+
+    connect(this, &MainWidget::gui_midi_event, visualizer, &Visualizer::generic_on_midi_event);
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWidget::update_serial_port_list);
@@ -364,4 +368,26 @@ void MainWidget::event_count_changed(int const event_count)
 {
     auto const str = QString("%1 Events").arg(event_count);
     ui.event_count_label->setText(str);
+}
+
+void MainWidget::all_on_clicked()
+{
+    for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx)
+    {
+        for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx)
+        {
+            emit gui_midi_event(suit_idx, midi_note_on, channel_idx);
+        }
+    }
+}
+
+void MainWidget::all_off_clicked()
+{
+    for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx)
+    {
+        for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx)
+        {
+            emit gui_midi_event(suit_idx, midi_note_off, channel_idx);
+        }
+    }
 }

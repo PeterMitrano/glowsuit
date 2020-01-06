@@ -81,6 +81,10 @@ public slots:
 
     void any_event();
 
+    void all_on_clicked();
+
+    void all_off_clicked();
+
 signals:
 
     void midi_file_changed(QString midi_filename);
@@ -90,6 +94,8 @@ signals:
     void pause();
 
     void stop();
+
+    void gui_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
 public:
     Visualizer *visualizer{nullptr};
@@ -115,4 +121,5 @@ private:
 
     qint64 duration{0};
     QTimer *timer{nullptr};
+    int num_channels{0};
 };
