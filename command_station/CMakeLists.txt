@@ -10,28 +10,46 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
 
+if(APPLE)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(FOUNDATION_LIBRARY Foundation)
+endif()
+
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
 add_library(serial STATIC ${serial_src})
 target_include_directories(serial PUBLIC include)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+if (WIN32)
     target_link_libraries(serial PUBLIC setupapi)
 endif ()
 
 file(GLOB midi_src src/midi/*.cpp)
-if (${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+if (WIN32)
     list(APPEND midi_src
             src/midi/win/midi_input_win.cpp
             include/midi/midi_file_player.h
             include/midi/win/midi_input_win.h)
     add_library(midi STATIC ${midi_src})
-else ()
+elseif (UNIX AND NOT APPLE)
     list(APPEND midi_src
             src/midi/linux/midi_input_linux.cpp
             include/midi/midi_file_player.h
             include/midi/linux/midi_input_linux.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC pthread asound)
+elseif (APPLE)
+    list(APPEND midi_src
+            src/midi/osx/midi_input_osx.cpp
+            include/midi/midi_file_player.h
+            include/midi/osx/midi_input_osx.h)
+    add_library(midi STATIC ${midi_src})
+    target_link_libraries(midi PUBLIC
+            "-framework CoreServices"
+            "-framework CoreAudio"
+            "-framework CoreMidi"
+            "-framework CoreFoundation"
+            ${IOKIT_LIBRARY}
+            ${FOUNDATION_LIBRARY})
 endif ()
 target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
