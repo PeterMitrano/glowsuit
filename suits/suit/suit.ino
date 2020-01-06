@@ -72,20 +72,13 @@ void loop() {
     if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
       xbee.getResponse().getRx16Response(rx16);
 
-      uint8_t command = rx16.getData(0);
-      uint8_t dest_channel = rx16.getData(1);
-      if (command == 128 and dest_channel == 8) { // all off
-        for (auto const pin : channel_to_pin) {
-          digitalWrite(pin, LOW);
-        }
-      }
-      if (command == 128) { // off
-        digitalWrite(channel_to_pin[dest_channel], LOW);
-      }
-      else if (command == 144) { // on
-        digitalWrite(channel_to_pin[dest_channel], HIGH);
-      }
-
+      uint8_t bit_pattern = rx16.getData(suit_number);
+      size_t bit_idx = 0;
+      for (auto const pin : channel_to_pin) {
+        auto const channel_on = static_cast<bool>((bit_pattern >> bit_idx) & 0x01);
+        digitalWrite(pin, channel_on ? HIGH : LOW);
+        ++bit_idx;
+      }      
     } else {
       flashLed(50);
       nss.println("not 16 rx");
