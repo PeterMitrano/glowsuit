@@ -48,7 +48,7 @@ public slots:
 
     void midi_file_changed(QString midi_filename);
 
-    void seek(int seconds);
+    void seek(int time_ms);
 
     void play();
 

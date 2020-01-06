@@ -155,7 +155,7 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
     }
 }
 
-void MidiFilePlayer::seek(int seconds)
+void MidiFilePlayer::seek(int time_ms)
 {
     if (states_vector.empty())
     {
@@ -164,7 +164,6 @@ void MidiFilePlayer::seek(int seconds)
 
     // restart the timer, start counting from time_ms
     // also reset the index to the midi event which is the next one after time_ms
-    auto const time_ms = seconds * 1000;
     latest_song_time_reference = time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
     auto predicate = [&](std::pair<int, State> const &pair)
