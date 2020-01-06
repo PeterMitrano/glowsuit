@@ -34,7 +34,7 @@ public:
 
     [[nodiscard]] int get_pen_width() const;
 
-    void resize();
+    void my_resize();
 
 public slots:
 

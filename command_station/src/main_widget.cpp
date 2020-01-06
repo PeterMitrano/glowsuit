@@ -27,12 +27,13 @@ MainWidget::MainWidget(QWidget *parent)
     ui.visualizer_group->layout()->addWidget(visualizer);
     live_midi_worker = new LiveMidiWorker(num_channels, this);
     music_player = new QMediaPlayer(this);
+    music_player->setNotifyInterval(100);
 
     midi_file_player = new MidiFilePlayer();
     midi_file_player->start_thread();
     connect(this, &MainWidget::midi_file_changed, midi_file_player, &MidiFilePlayer::midi_file_changed);
     connect(midi_file_player, &MidiFilePlayer::midi_event, visualizer, &Visualizer::on_midi_file_event);
-    ui.player_slider->setRange(0, static_cast<int>(music_player->duration() / 1000));
+    ui.player_slider->setRange(0, static_cast<int>(music_player->duration()));
 
     connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
     connect(ui.player_slider, &QSlider::sliderMoved, midi_file_player, &MidiFilePlayer::seek);
@@ -52,8 +53,7 @@ MainWidget::MainWidget(QWidget *parent)
 
     connect(ui.front_button, &QPushButton::clicked, visualizer, &Visualizer::front_status_clicked);
     connect(ui.back_button, &QPushButton::clicked, visualizer, &Visualizer::back_status_clicked);
-    connect(midi_file_player, &MidiFilePlayer::track_range_changed, this,
-            &MainWidget::track_range_changed);
+    connect(midi_file_player, &MidiFilePlayer::num_tracks_changed, this, &MainWidget::num_tracks_changed);
     connect(ui.track_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
             &MidiFilePlayer::track_changed);
     connect(ui.scale_spinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), visualizer,
@@ -86,7 +86,7 @@ MainWidget::MainWidget(QWidget *parent)
     timer->start(1000);
 
     connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
-                     &MainWidget::xbee_port_changed);
+            &MainWidget::xbee_port_changed);
 
     restore_settings();
 
@@ -179,6 +179,7 @@ void MainWidget::save_settings()
     settings->setValue("gui/live_checkbox", ui.live_checkbox->isChecked());
     settings->setValue("gui/scale", ui.scale_spinbox->value());
     settings->setValue("gui/track", ui.track_spinbox->value());
+    settings->setValue("gui/controls_hidden", controls_hidden);
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
 }
@@ -201,6 +202,8 @@ void MainWidget::restore_settings()
     ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
     ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
     ui.track_spinbox->setValue(settings->value("gui/track").toInt());
+    controls_hidden = settings->value("gui/controls_hidden").toBool();
+    ui.controls_widget->setVisible(!controls_hidden);
 
     emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
@@ -250,35 +253,40 @@ void MainWidget::play_pause_clicked()
     }
 }
 
-void MainWidget::seek(int seconds)
+void MainWidget::seek(int milliseconds)
 {
-    music_player->setPosition(seconds * 1000);
+    music_player->setPosition(milliseconds);
 }
 
 void MainWidget::duration_changed(qint64 duration)
 {
-    this->duration = duration / 1000;
-    ui.player_slider->setMaximum(this->duration);
+    this->song_duration_ms = duration;
+    ui.player_slider->setMaximum(this->song_duration_ms);
 }
 
 void MainWidget::position_changed(qint64 progress)
 {
     if (!ui.player_slider->isSliderDown())
-        ui.player_slider->setValue(progress / 1000);
+        ui.player_slider->setValue(progress);
 
-    update_duration_info(progress / 1000);
+    update_duration_info(progress);
 }
 
-void MainWidget::update_duration_info(qint64 currentInfo)
+void MainWidget::update_duration_info(qint64 time_ms)
 {
     QString time_str;
-    if (currentInfo || duration)
+    if (time_ms || song_duration_ms)
     {
-        QTime current_time((currentInfo / 3600) % 60, (currentInfo / 60) % 60, currentInfo % 60,
-                           (currentInfo * 1000) % 1000);
-        QTime total_time((duration / 3600) % 60, (duration / 60) % 60, duration % 60, (duration * 1000) % 1000);
+        QTime current_time(static_cast<int>(time_ms / 3600000) % 60,
+                           static_cast<int>(time_ms / 60000) % 60,
+                           static_cast<int>(time_ms / 1000) % 60,
+                           static_cast<int>(time_ms) % 1000);
+        QTime total_time(static_cast<int>(song_duration_ms / 3600000) % 60,
+                         static_cast<int>(song_duration_ms / 60000) % 60,
+                         static_cast<int>(song_duration_ms / 1000) % 60,
+                         static_cast<int>(song_duration_ms) % 1000);
         QString format = "mm:ss";
-        if (duration > 3600)
+        if (song_duration_ms > 3600000)
         {
             format = "hh:mm:ss";
         }
@@ -357,9 +365,9 @@ void MainWidget::blink_midi_indicator()
     });
 }
 
-void MainWidget::track_range_changed(int const min, int const max)
+void MainWidget::num_tracks_changed(int const num_tracks)
 {
-    ui.track_spinbox->setRange(min, max);
+    ui.track_spinbox->setRange(0, num_tracks - 1);
 }
 
 void MainWidget::event_count_changed(int const event_count)
@@ -396,17 +404,7 @@ void MainWidget::keyReleaseEvent(QKeyEvent *event)
     if (key == Qt::Key_H)
     {
         controls_hidden = !controls_hidden;
-        if (controls_hidden)
-        {
-            // TODO: hide everything in controls_layout
-        } else
-        {
-            // TODO: un-hide everything in controls_layout
-        }
-    }
-    else if (key == Qt::Key_Space)
-    {
-        // Toggle play/pause
+        ui.controls_widget->setVisible(!controls_hidden);
     }
 
 }

@@ -83,9 +83,9 @@ void MidiFilePlayer::parse_track()
 void MidiFilePlayer::midi_file_changed(QString const midi_filename)
 {
     midifile.read(midi_filename.toStdString());
-    auto const max = midifile.getNumTracks() - 1;
-    emit track_range_changed(0, max);
-    if (track_number >= max)
+    auto const num_tracks = midifile.getNumTracks();
+    emit num_tracks_changed(num_tracks);
+    if (track_number >= num_tracks - 1)
     {
         track_number = 0;
     }

@@ -11,7 +11,7 @@
 
 Visualizer::Visualizer(QWidget *parent) : QWidget(parent)
 {
-    resize();
+    my_resize();
 }
 
 int Visualizer::load_suit()
@@ -174,11 +174,11 @@ int Visualizer::get_pen_width() const
 void Visualizer::viz_scale_changed(double viz_scale)
 {
     this->scale = viz_scale;
-    resize();
+    my_resize();
     update();
 }
 
-void Visualizer::resize()
+void Visualizer::my_resize()
 {
     auto const width = static_cast<int>(scale * num_suits * suit_width + offset_x * 2);
     setMinimumSize(width, static_cast<int>(scale * base_height));

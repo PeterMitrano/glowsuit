@@ -40,7 +40,7 @@ signals:
 
     void midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
-    void track_range_changed(int min, int max);
+    void num_tracks_changed(int num_tracks);
 
     void event_count_changed(int count);
 

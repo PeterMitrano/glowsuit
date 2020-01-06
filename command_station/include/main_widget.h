@@ -57,7 +57,7 @@ public slots:
 
     void event_count_changed(int event_count);
 
-    void track_range_changed(int min, int max);
+    void num_tracks_changed(int num_tracks);
 
     void update_serial_port_list();
 
@@ -71,7 +71,7 @@ public slots:
 
     void xbee_port_changed(int index);
 
-    void seek(int seconds);
+    void seek(int milliseconds);
 
     void duration_changed(qint64 duration);
 
@@ -121,7 +121,7 @@ private:
     QThread midi_player_thread;
     MidiFilePlayer *midi_file_player{nullptr};
 
-    qint64 duration{0};
+    qint64 song_duration_ms{0};
     QTimer *timer{nullptr};
     int num_channels{0};
     bool controls_hidden{false};
