@@ -5,6 +5,17 @@
       "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x86_x64" ],
+      "buildRoot": "${projectDir}/build-release",
+      "installRoot": "${projectDir}/build-release",
+      "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:/Users/peter/Documents/qt5_install",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [ "msvc_x86_x64" ],
       "buildRoot": "${projectDir}/build-debug",
       "installRoot": "${projectDir}/build-debug",
       "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:/Users/peter/Documents/qt5_install",

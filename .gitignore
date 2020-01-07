@@ -8,6 +8,7 @@ cmake-build-release
 *.wav
 *.mp3
 build-debug
+build-release
 env.yaml
 .idea
 *.mid
