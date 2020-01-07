@@ -26,24 +26,24 @@ endif ()
 file(GLOB midi_src src/midi/*.cpp)
 if (WIN32)
     list(APPEND midi_src
-            src/midi/win/midi_input_win.cpp
-            include/midi/midi_file_player.h
-            include/midi/win/midi_input_win.h)
+            src/midi/midi_input.cpp
+            include/midi/midi_input.h
+            include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_compile_definitions(midi PUBLIC __WINDOWS_MM_)
 elseif (UNIX AND NOT APPLE)
     list(APPEND midi_src
             src/midi/midi_input.cpp
-            include/midi/midi_file_player.h
-            include/midi/midi_input.h)
+            include/midi/midi_input.h
+            include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC pthread asound)
     target_compile_definitions(midi PUBLIC __LINUX_ALSA__)
 elseif (APPLE)
     list(APPEND midi_src
-            src/midi/osx/midi_input_osx.cpp
-            include/midi/midi_file_player.h
-            include/midi/osx/midi_input_osx.h)
+            src/midi/midi_input.cpp
+            include/midi/midi_input.h
+            include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC
             "-framework CoreServices"
