@@ -6,17 +6,25 @@ Come performance time, we will (hopefully?) be using the `command_station` to bo
 
 **NOTE:** you can hover over things in the GUI to see little hints.
 
-# Installation
+# Dependencies
+
+DON'T SKIP THIS.
+
+## Mac
+1. Install the FTDI driver so you can talk to the XBees https://www.ftdichip.com/Drivers/VCP.htm
 
 ## Windows
 
 1. Install Loop-MIDI: [http://www.tobias-erichsen.de/wp-content/uploads/2018/12/loopMIDISetup_1_0_15_26.zip](http://www.tobias-erichsen.de/wp-content/uploads/2018/12/loopMIDISetup_1_0_15_26.zip)
-1. Download the `command_station.exe` and the `suit.json` file from the [latest release here on github](https://github.com/PeterMitrano/glowsuit/releases/latest).
-1. Put the executable and the json file in the same folder, and double click to run the exe file.
-
 
 ## Ubuntu (Bionic)
 
 Install Qt and Qt multimedia plugins via the [online installer](https://www.qt.io/download-qt-installer). You may have to check "Latest Release" and hit refresh to see version 5.14. You'll also need least libstdc++6 version 3.4.22.
 
 You should now be able to run the linux binary. If you want to compile it yourself, you may need extra libraries.
+
+## Getting the Running the Program
+
+
+1. Download the `command_station.exe` and the `suit.json` file from the [latest release here on github](https://github.com/PeterMitrano/glowsuit/releases/latest).
+1. Put the executable and the json file in the same folder, and run the executable.
