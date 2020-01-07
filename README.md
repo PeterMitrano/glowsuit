@@ -15,10 +15,8 @@ Come performance time, we will (hopefully?) be using the `command_station` to bo
 1. Put the executable and the json file in the same folder, and double click to run the exe file.
 
 
-## Ubuntu Linux
+## Ubuntu (Bionic)
 
-Install Qt and Qt multimedia plugins.
-
-    sudo apt install qt5-default libqt5multimedia5-plugins
+Install Qt and Qt multimedia plugins via the online installer. You may have to check "Latest Release" and hit refresh to see version 5.14. You'll also need least libstdc++6 version 3.4.22.
 
 You should now be able to run the linux binary. If you want to compile it yourself, you may need extra libraries.
