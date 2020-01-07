@@ -63,10 +63,6 @@ QWidget:disabled {
     selection-color: #4D545B;
 }
 
-QWidget:item:selected {
-    background-color: #3375A3;
-}
-
 QWidget:item:hover {
     background-color: #179AE0;
     color: #31363B;
@@ -324,7 +320,7 @@ QMenuBar {
 }
 
 QMenuBar:focus {
-    border: 1px solid #179AE0;
+    border: 10px solid #179AE0;
 }
 
 QMenuBar::item {
@@ -428,13 +424,6 @@ QMenu::right-arrow {
 }
 
 /* QAbstractItemView ------------------------------------------------------ */
-
-QAbstractItemView {
-    alternate-background-color: #232629;
-    color: #EFF0F1;
-    border: 1px solid #31363B;
-    border-radius: 4px;
-}
 
 QAbstractItemView QLineEdit {
     padding: 2px;
@@ -1024,49 +1013,37 @@ QCommandLinkButton {
 
 QComboBox {
     border: 1px solid #31363B;
-    border-radius: 4px;
-    selection-background-color: #3375A3;
-    padding-top: 2px;     /* This fix  #103, #111*/
-    padding-bottom: 2px;  /* This fix  #103, #111*/
-    padding-left: 4px;
-    padding-right: 4px;
+    selection-background-color: #4D545B;
+    padding-top: 4px;     /* This fix  #103, #111*/
+    padding-bottom: 4px;  /* This fix  #103, #111*/
+    padding-left: 6px;
+    padding-right: 6px;
     /* min-width: 75px;  removed to fix 109 */
 }
 
 QComboBox:disabled {
-    background-color: #232629;
+    background-color: #4D545B;
     color: #4D545B;
 }
 
-QComboBox:hover{
-    border: 1px solid #179AE0;
-}
-
-QComboBox:on {
-    selection-background-color: #232629;
-}
-
 QComboBox QAbstractItemView {
-    background-color: #232629;
-    border-radius: 4px;
-    border: 1px solid #31363B;
-    selection-color: #179AE0;
-    selection-background-color: #31363B;
+    background-color: #31363B;
+}
+
+QComboBox QAbstractItemView:focus {
+    border: 4px solid #31363B;
 }
 
 QComboBox::drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    width: 20px;
-    border-left-width: 0px;
-    border-left-color: #31363B;
-    border-left-style: solid;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
+    border: none;
 }
 
 QComboBox::down-arrow {
     image: url(:/icons/arrow_down_disabled.png);
+    width: 12px;
+    height: 12px;
 }
 
 QComboBox::down-arrow:on,
@@ -1855,15 +1832,4 @@ QDateEdit QAbstractItemView {
     border: 1px solid #31363B;
     selection-background-color: #3375A3;
 }
-
-QAbstractView:hover{
-    border: 1px solid #179AE0;
-    color: #EFF0F1;
-}
-
-QAbstractView:selected {
-    background: #3375A3;
-    color: #31363B;
-}
-
 

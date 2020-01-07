@@ -109,7 +109,6 @@ public:
     std::map<unsigned int, State> states;
     // TODO: better than raw pointer? problem with optional is serial::Serial is not copyable
     serial::Serial *xbee_serial{nullptr};
-    std::vector<serial::PortInfo> ports;
     QSettings *settings;
 
 
@@ -126,4 +125,5 @@ private:
     int num_channels{0};
     bool controls_hidden{false};
     QLayoutItem *controls_layout_item{nullptr};
+    QString previously_selected_port_name;
 };

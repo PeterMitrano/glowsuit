@@ -83,11 +83,13 @@ MainWidget::MainWidget(QWidget *parent)
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWidget::update_serial_port_list);
-    timer->start(1000);
+    timer->start(4000);
 
-    connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(ui.xbee_port_combobox, qOverload<int>(&QComboBox::activated), this,
             &MainWidget::xbee_port_changed);
 
+    // do this before restoring settings so we can restore the XBee port, if it exists
+    update_serial_port_list();
     restore_settings();
 
     if (!music_player->isAvailable())
@@ -159,8 +161,8 @@ void MainWidget::live_midi_changed(int state)
 
 void MainWidget::xbee_port_changed(int index)
 {
-    auto port = ports[index];
-    xbee_serial = new serial::Serial(port.port, baud_rate, serial::Timeout::simpleTimeout(1000));
+    auto const port_name = ui.xbee_port_combobox->itemText(index).toStdString();
+    xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(1000));
 
     // TODO: is this an error? possible data race
     live_midi_worker->xbee_serial = xbee_serial;
@@ -182,6 +184,7 @@ void MainWidget::save_settings()
     settings->setValue("gui/controls_hidden", controls_hidden);
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
+    settings->setValue("gui/xbee_port", previously_selected_port_name);
 }
 
 void MainWidget::restore_settings()
@@ -208,6 +211,16 @@ void MainWidget::restore_settings()
     emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
     ui.midi_file_group->setEnabled(!ui.live_checkbox->isChecked());
+
+    previously_selected_port_name = settings->value("gui/xbee_port").toString();
+    for (auto i{0u}; i < ui.xbee_port_combobox->count(); ++i)
+    {
+        if (previously_selected_port_name == ui.xbee_port_combobox->itemText(i))
+        {
+            ui.xbee_port_combobox->setCurrentIndex(i);
+            emit xbee_port_changed(i);
+        }
+    }
 }
 
 QMediaPlayer::State MainWidget::state() const
@@ -341,14 +354,38 @@ void MainWidget::handle_cursor(QMediaPlayer::MediaStatus status)
 
 void MainWidget::update_serial_port_list()
 {
-    ports = serial::list_ports();
-    for (auto &port : ports)
+    previously_selected_port_name = ui.xbee_port_combobox->currentText();
+
+    auto new_ports = serial::list_ports();
+    // filter out ports that probably aren't serial
+    auto probably_not_serial = [&](serial::PortInfo const &new_port)
     {
-        if (port.description.find("Serial Port") != std::string::npos)
-        {
-            ui.xbee_port_combobox->insertItem(0, QString::fromStdString(port.port));
-        }
+        return (new_port.description.find("Serial Port") == std::string::npos) &&
+               (new_port.description.find("USB") == std::string::npos);
+    };
+    new_ports.erase(std::remove_if(new_ports.begin(), new_ports.end(), probably_not_serial), new_ports.end());
+
+    // update the list
+    ui.xbee_port_combobox->clear();
+    for (auto const &port : new_ports)
+    {
+        ui.xbee_port_combobox->insertItem(0, QString::fromStdString(port.port));
     }
+
+    // re-select if the previously selected port still exists
+    auto const previously_selected_item_idx = ui.xbee_port_combobox->findText(previously_selected_port_name);
+    if (previously_selected_item_idx != -1)
+    {
+        ui.xbee_port_combobox->setCurrentIndex(previously_selected_item_idx);
+    }
+
+    // if only one device exists, consider it selected
+    if (ui.xbee_port_combobox->count() == 1 && previously_selected_port_name != ui.xbee_port_combobox->itemText(0))
+    {
+        ui.xbee_port_combobox->setCurrentIndex(0);
+        emit xbee_port_changed(0);
+    }
+
 }
 
 void MainWidget::any_event()
