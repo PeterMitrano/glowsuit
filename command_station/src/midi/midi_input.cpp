@@ -1,17 +1,33 @@
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
+#include <QString>
 #include <QThread>
 
 #include <midi/midi_input.h>
 #include <sstream>
 #include <common.h>
 
+void error_callback(RtMidiError::Type type, const std::string& errorText, void* userData) {
+    auto const context = (LiveMidiWorker*)(userData);
+    context->show_midi_warning(QString::fromStdString(errorText));
+}
 
-LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget *parent_widget)
-        : QObject(nullptr),
-          parent_widget(parent_widget),
-          num_channels(num_channels)
-{}
+LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget* parent_widget)
+    : QObject(nullptr),
+    parent_widget(parent_widget),
+    num_channels(num_channels)
+{
+    midiin.setErrorCallback(&error_callback, this);
+}
+
+void LiveMidiWorker::show_midi_warning(QString message)
+{
+    std::cout << message.toStdString() << '\n';
+    //QMessageBox::warning(parent_widget,
+    //    QString("MIDI Error"),
+    //    message
+    //);
+}
 
 void LiveMidiWorker::listen_for_midi()
 {
@@ -23,6 +39,11 @@ void LiveMidiWorker::start_midi()
 {
     // Check available ports.
     midiin.openVirtualPort("glowsuit:in");
+
+    if (!midiin.isPortOpen())
+    {
+        return;
+    }
 
     // Ignore sysex, timing, or active sensing messages.
     midiin.ignoreTypes(true, true, true);
@@ -71,10 +92,12 @@ void LiveMidiWorker::start_midi()
         if (command == midi_note_off)
         {
             current_state.set(bit_idx, false);
-        } else if (command == midi_note_on)
+        }
+        else if (command == midi_note_on)
         {
             current_state.set(bit_idx, true);
-        } else
+        }
+        else
         {
             // just skip if it's not NOTE ON or NOTE OFF
             continue;

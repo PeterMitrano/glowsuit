@@ -16,7 +16,10 @@ public:
 
     void start_midi();
 
+    void show_midi_warning(QString message);
+
     serial::Serial *xbee_serial{nullptr};
+    QWidget *parent_widget;
 
 public slots:
 
@@ -33,7 +36,6 @@ signals:
     void my_finished();
 
 private:
-    QWidget *parent_widget;
     size_t num_channels;
     int octave_offset{0};
 

@@ -30,7 +30,7 @@ if (WIN32)
             include/midi/midi_input.h
             include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
-    target_compile_definitions(midi PUBLIC __WINDOWS_MM_)
+    target_compile_definitions(midi PUBLIC __WINDOWS_MM__)
 elseif (UNIX AND NOT APPLE)
     list(APPEND midi_src
             src/midi/midi_input.cpp

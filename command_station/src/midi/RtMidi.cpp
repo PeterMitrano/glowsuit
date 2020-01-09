@@ -2617,7 +2617,7 @@ void MidiInWinMM :: openPort( unsigned int portNumber, const std::string &/*port
 
 void MidiInWinMM :: openVirtualPort( const std::string &portName )
 {
-    openPort(0);
+    openPort(0, "glowsuit:in");
 }
 
 void MidiInWinMM :: closePort( void )
