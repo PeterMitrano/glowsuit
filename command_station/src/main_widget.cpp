@@ -29,14 +29,13 @@ MainWidget::MainWidget(QWidget *parent)
     music_player = new QMediaPlayer(this);
     music_player->setNotifyInterval(100);
 
-    midi_file_player = new MidiFilePlayer();
-    midi_file_player->start_thread();
-    connect(this, &MainWidget::midi_file_changed, midi_file_player, &MidiFilePlayer::midi_file_changed);
-    connect(midi_file_player, &MidiFilePlayer::midi_event, visualizer, &Visualizer::on_midi_file_event);
+    midi_file_player.start_thread();
+    connect(this, &MainWidget::midi_file_changed, &midi_file_player, &MidiFilePlayer::midi_file_changed);
+    connect(&midi_file_player, &MidiFilePlayer::midi_event, visualizer, &Visualizer::on_midi_file_event);
     ui.player_slider->setRange(0, static_cast<int>(music_player->duration()));
 
     connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
-    connect(ui.player_slider, &QSlider::sliderMoved, midi_file_player, &MidiFilePlayer::seek);
+    connect(ui.player_slider, &QSlider::sliderMoved, &midi_file_player, &MidiFilePlayer::seek);
     connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
     connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
     connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
@@ -46,15 +45,15 @@ MainWidget::MainWidget(QWidget *parent)
     connect(this, &MainWidget::play, music_player, &QMediaPlayer::play);
     connect(this, &MainWidget::pause, music_player, &QMediaPlayer::pause);
     connect(this, &MainWidget::stop, music_player, &QMediaPlayer::stop);
-    connect(this, &MainWidget::play, midi_file_player, &MidiFilePlayer::play);
-    connect(this, &MainWidget::pause, midi_file_player, &MidiFilePlayer::pause);
-    connect(this, &MainWidget::stop, midi_file_player, &MidiFilePlayer::stop);
+    connect(this, &MainWidget::play, &midi_file_player, &MidiFilePlayer::play);
+    connect(this, &MainWidget::pause, &midi_file_player, &MidiFilePlayer::pause);
+    connect(this, &MainWidget::stop, &midi_file_player, &MidiFilePlayer::stop);
     connect(music_player, &QMediaPlayer::stateChanged, this, &MainWidget::set_state);
 
     connect(ui.front_button, &QPushButton::clicked, visualizer, &Visualizer::front_status_clicked);
     connect(ui.back_button, &QPushButton::clicked, visualizer, &Visualizer::back_status_clicked);
-    connect(midi_file_player, &MidiFilePlayer::num_tracks_changed, this, &MainWidget::num_tracks_changed);
-    connect(ui.track_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
+    connect(&midi_file_player, &MidiFilePlayer::num_tracks_changed, this, &MainWidget::num_tracks_changed);
+    connect(ui.track_spinbox, qOverload<int>(&QSpinBox::valueChanged), &midi_file_player,
             &MidiFilePlayer::track_changed);
     connect(ui.scale_spinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), visualizer,
             &Visualizer::viz_scale_changed);
@@ -63,8 +62,8 @@ MainWidget::MainWidget(QWidget *parent)
     connect(ui.all_on_button, &QPushButton::clicked, this, &MainWidget::all_on_clicked);
     connect(ui.all_off_button, &QPushButton::clicked, this, &MainWidget::all_off_clicked);
     connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
-    connect(midi_file_player, &MidiFilePlayer::event_count_changed, this, &MainWidget::event_count_changed);
-    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), midi_file_player,
+    connect(&midi_file_player, &MidiFilePlayer::event_count_changed, this, &MainWidget::event_count_changed);
+    connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), &midi_file_player,
             &MidiFilePlayer::octave_spinbox_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
             &LiveMidiWorker::octave_spinbox_changed);
@@ -104,6 +103,8 @@ MainWidget::MainWidget(QWidget *parent)
 
 MainWidget::~MainWidget()
 {
+    music_player->stop();
+
     live_midi_thread.requestInterruption();
     live_midi_thread.quit();
     live_midi_thread.wait();
@@ -111,6 +112,9 @@ MainWidget::~MainWidget()
     midi_player_thread.requestInterruption();
     midi_player_thread.quit();
     midi_player_thread.wait();
+
+    // delete pointers that have no parents
+    delete live_midi_worker;
 }
 
 void MainWidget::music_file_button_clicked()
@@ -166,7 +170,7 @@ void MainWidget::xbee_port_changed(int index)
 
     // TODO: is this an error? possible data race
     live_midi_worker->xbee_serial = xbee_serial;
-    midi_file_player->xbee_serial = xbee_serial;
+    midi_file_player.xbee_serial = xbee_serial;
 }
 
 void MainWidget::closeEvent(QCloseEvent *event)

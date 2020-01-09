@@ -118,7 +118,7 @@ private:
     QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
     QMediaPlayer *music_player{nullptr};
     QThread midi_player_thread;
-    MidiFilePlayer *midi_file_player{nullptr};
+    MidiFilePlayer midi_file_player;
 
     qint64 song_duration_ms{0};
     QTimer *timer{nullptr};

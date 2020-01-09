@@ -7,15 +7,16 @@
 #include <sstream>
 #include <common.h>
 
-void error_callback(RtMidiError::Type type, const std::string& errorText, void* userData) {
-    auto const context = (LiveMidiWorker*)(userData);
+void error_callback(RtMidiError::Type type, const std::string &errorText, void *userData)
+{
+    auto const context = (LiveMidiWorker *) (userData);
     context->show_midi_warning(QString::fromStdString(errorText));
 }
 
-LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget* parent_widget)
-    : QObject(nullptr),
-    parent_widget(parent_widget),
-    num_channels(num_channels)
+LiveMidiWorker::LiveMidiWorker(size_t num_channels, QWidget *parent_widget)
+        : QObject(nullptr),
+          parent_widget(parent_widget),
+          num_channels(num_channels)
 {
     midiin.setErrorCallback(&error_callback, this);
 }
@@ -60,7 +61,8 @@ void LiveMidiWorker::start_midi()
 
         // 0 means no message we ready
         std::vector<unsigned char> message;
-        if (midiin.getMessage(&message) == 0.0) {
+        if (midiin.getMessage(&message) == 0.0)
+        {
             continue;
         }
 
@@ -92,12 +94,10 @@ void LiveMidiWorker::start_midi()
         if (command == midi_note_off)
         {
             current_state.set(bit_idx, false);
-        }
-        else if (command == midi_note_on)
+        } else if (command == midi_note_on)
         {
             current_state.set(bit_idx, true);
-        }
-        else
+        } else
         {
             // just skip if it's not NOTE ON or NOTE OFF
             continue;
