@@ -3,8 +3,7 @@
 *.swp
 *.vs
 build
-cmake-build-debug
-cmake-build-release
+cmake-build-*
 *.wav
 *.mp3
 build-debug
