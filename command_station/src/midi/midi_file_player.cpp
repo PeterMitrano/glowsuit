@@ -1,7 +1,8 @@
-#include <common.h>
-#include <midi/midi_file_player.h>
 #include <QThread>
 #include <iostream>
+
+#include <midi/midi_file_player.h>
+#include <common.h>
 
 template<typename T>
 auto to_ms(T time_point)
@@ -156,7 +157,8 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
     if (xbee_serial != nullptr)
     {
         try {
-            xbee_serial->write(state.data.data(), message_size);
+            auto const [packet, size] = make_packet(state);
+            xbee_serial->write(packet.data(), size);
         } catch (serial::SerialException se) {
             // try to continue as if everything is fine.
         }

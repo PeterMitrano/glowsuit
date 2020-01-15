@@ -58,12 +58,14 @@ target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
 
 set(command_station_src
+        src/common.cpp
         src/command_station.cpp
         src/visualizer.cpp
         src/main_widget.cpp
         include/main_widget.h
         include/visualizer.h
         rc/command_station.qrc)
+
 # win32 has no effect on osx/linux, so we can use it here without ifdefs
 add_executable(command_station WIN32 ${command_station_src})
 target_include_directories(command_station PUBLIC include)

@@ -4,7 +4,7 @@
 
 #include <serial/serial.h>
 #include <midi/MidiFile.h>
-#include <midi/midi_common.h>
+#include <common.h>
 #include <midi/RtMidi.h>
 
 class LiveMidiWorker : public QObject

@@ -10,7 +10,7 @@
 #include <byteset.h>
 #include <serial/serial.h>
 #include <midi/MidiFile.h>
-#include <midi/midi_common.h>
+#include <common.h>
 
 using OnsetStatePair = std::pair<int, State>;
 using OnsetStateVec = std::vector<OnsetStatePair>;

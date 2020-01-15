@@ -106,7 +106,14 @@ void LiveMidiWorker::start_midi()
         // transmit to suits
         if (xbee_serial != nullptr)
         {
-            xbee_serial->write(current_state.data.data(), message_size);
+            std::cout << current_state << '\n';
+            auto const[packet, size] = make_packet(current_state);
+            for (auto const byte : packet)
+            {
+                printf("%02x", static_cast<unsigned int>(byte));
+            }
+            std::cout << '\n';
+            xbee_serial->write(packet.data(), size);
         }
     }
 }

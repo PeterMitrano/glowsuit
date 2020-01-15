@@ -2031,6 +2031,8 @@ void MidiInAlsa :: openVirtualPort( const std::string &portName )
       return;
     }
   }
+
+  connected_ = true;
 }
 
 void MidiInAlsa :: closePort( void )
@@ -2289,6 +2291,8 @@ void MidiOutAlsa :: openVirtualPort( const std::string &portName )
       error( RtMidiError::DRIVER_ERROR, errorString_ );
     }
   }
+
+  connected_ = true;
 }
 
 void MidiOutAlsa :: sendMessage( const unsigned char *message, size_t size )

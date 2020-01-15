@@ -17,7 +17,7 @@ def main():
 
     while True:
         time.sleep(2)
-        xbee.send('tx', frame_id='\x01', dest_addr='\x00\x01', data=b'\x80\x3C\xFF')
+        xbee.send('tx', frame_id='\x01', dest_addr='\x00\x01', data=b'\xFF\xFF\xFF')
         response = xbee.wait_read_frame(timeout=5)
         print(response)
 

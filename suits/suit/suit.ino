@@ -28,8 +28,8 @@ constexpr  int channel_to_pin[8] = {
 uint8_t suit_number = 0;
 
 constexpr int ni_req_buff_len = 8;
-constexpr uint8_t ni_req_buff[ni_req_buff_len] = {126, 0, 4, 9, 1, 77, 89, 79};
-constexpr int ni_res_buff_len = 11;
+constexpr uint8_t ni_req_buff[ni_req_buff_len] = {0x7E, 0x00, 0x04, 0x08, 0x01, 0x4E, 0x49, 0x5F};
+constexpr int ni_res_buff_len = 10;
 
 uint8_t get_suit_number();
 void flashLed(unsigned int on_time);
@@ -48,6 +48,11 @@ void setup() {
   suit_number = get_suit_number();
   nss.print("Suit number: ");
   nss.println(suit_number);
+
+  for (auto i = 0u; i < suit_number; ++i) {
+    flashLed(250);
+    delay(250);
+  }
 
   for (auto const pin : channel_to_pin) {
     digitalWrite(pin, HIGH);
@@ -72,7 +77,7 @@ void loop() {
     if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
       xbee.getResponse().getRx16Response(rx16);
 
-      uint8_t bit_pattern = rx16.getData(suit_number);
+      uint8_t bit_pattern = rx16.getData(suit_number - 1);
       size_t bit_idx = 0;
       for (auto const pin : channel_to_pin) {
         auto const channel_on = static_cast<bool>((bit_pattern >> bit_idx) & 0x01);
@@ -93,7 +98,8 @@ uint8_t get_suit_number() {
   while (Serial.available() < ni_res_buff_len);
   uint8_t ni_res_buff[ni_res_buff_len];
   Serial.readBytes(ni_res_buff, ni_res_buff_len);
-  const int suit_number = ni_res_buff[ni_res_buff_len - 2] << 8 + ni_res_buff[ni_res_buff_len - 1];
+  // 3is the ascii character 0. This hack only works for numbers less than 10
+  const int suit_number = static_cast<int>(ni_res_buff[ni_res_buff_len - 2]) - 48;
   return suit_number;
 }
 
