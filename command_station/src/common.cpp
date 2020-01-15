@@ -20,7 +20,6 @@ std::pair<std::vector<uint8_t>, size_t> make_packet(State state)
     packet.push_back(0x00);
     packet.push_back(address_lb);
     packet.push_back(option);
-    std::cout << state << '\n';
     for (auto const data_byte : data)
     {
         packet.push_back(data_byte);
