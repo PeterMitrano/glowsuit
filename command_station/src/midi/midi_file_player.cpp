@@ -124,9 +124,11 @@ void MidiFilePlayer::start_thread()
                 // transmit
                 if (xbee_serial)
                 {
-                    try {
-                    xbee_serial->write(state.data.data(), message_size);
-                    } catch (serial::SerialException) {
+                    try
+                    {
+                        xbee_serial->write(state.data.data(), message_size);
+                    } catch (serial::SerialException)
+                    {
                         // pass
                     }
                 }
@@ -156,10 +158,12 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
     // transmit
     if (xbee_serial != nullptr)
     {
-        try {
-            auto const [packet, size] = make_packet(state);
+        try
+        {
+            auto const[packet, size] = make_packet(state);
             xbee_serial->write(packet.data(), size);
-        } catch (serial::SerialException se) {
+        } catch (serial::SerialException se)
+        {
             // try to continue as if everything is fine.
         }
     }
@@ -236,4 +240,12 @@ void MidiFilePlayer::track_changed(int const value)
 {
     track_number = value;
     parse_track();
+}
+
+void MidiFilePlayer::status_changed(QMediaPlayer::MediaStatus status)
+{
+    if (status == QMediaPlayer::EndOfMedia)
+    {
+        stop();
+    }
 }

@@ -28,3 +28,8 @@ You should now be able to run the linux binary. If you want to compile it yourse
 
 1. Download the `command_station.exe` and the `suit.json` file from the [latest release here on github](https://github.com/PeterMitrano/glowsuit/releases/latest).
 1. Put the executable and the json file in the same folder, and run the executable.
+
+# ISSUES/TODO
+
+- reduce latency
+- measure round-trip XBee time, Xbee throughput, etc..

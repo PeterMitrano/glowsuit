@@ -55,7 +55,7 @@ elseif (APPLE)
     target_compile_definitions(midi PUBLIC __MACOSX_CORE__)
 endif ()
 target_include_directories(midi PUBLIC include)
-target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets)
+target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia)
 
 set(command_station_src
         src/common.cpp

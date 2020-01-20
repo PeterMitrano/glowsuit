@@ -27,8 +27,8 @@ std::pair<std::vector<uint8_t>, size_t> make_packet(State state)
     // To calculate the checksum of an API frame:
     //   Add all bytes of the packet, except the start delimiter 0x7E and the length (the second and third bytes).
     //   Keep only the lowest 8 bits from the result. Subtract this quantity from 0xFF.
-    constexpr auto mask = 15u;
-    auto const checksum = 255u - (std::accumulate(packet.begin() + 3, packet.end(), 0u) & mask);
+    constexpr auto mask = 0xFF;
+    auto const checksum = 0xFF - (std::accumulate(packet.begin() + 3, packet.end(), 0u) & mask);
     packet.push_back(static_cast<uint8_t>(checksum));
     return {packet, packet.size()};
 }

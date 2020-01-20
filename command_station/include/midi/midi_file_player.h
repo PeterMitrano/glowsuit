@@ -5,6 +5,7 @@
 
 #include <QMutex>
 #include <QObject>
+#include <QMediaPlayer>
 #include <QWidget>
 
 #include <byteset.h>
@@ -55,6 +56,8 @@ public slots:
     void pause();
 
     void stop();
+
+    void status_changed(QMediaPlayer::MediaStatus status);
 
     void track_changed(int value);
 

@@ -39,6 +39,7 @@ MainWidget::MainWidget(QWidget *parent)
     connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
     connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
     connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
+    connect(music_player, &QMediaPlayer::mediaStatusChanged, &midi_file_player, &MidiFilePlayer::status_changed);
     connect(music_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,
             &MainWidget::display_error_message);
 
@@ -317,25 +318,9 @@ void MainWidget::status_changed(QMediaPlayer::MediaStatus status)
     handle_cursor(status);
 
     // handle status message
-    switch (status)
+    if (status == QMediaPlayer::InvalidMedia)
     {
-        case QMediaPlayer::UnknownMediaStatus:
-        case QMediaPlayer::NoMedia:
-        case QMediaPlayer::LoadedMedia:
-            break;
-        case QMediaPlayer::LoadingMedia:
-            break;
-        case QMediaPlayer::BufferingMedia:
-        case QMediaPlayer::BufferedMedia:
-            break;
-        case QMediaPlayer::StalledMedia:
-            break;
-        case QMediaPlayer::EndOfMedia:
-            QApplication::alert(this);
-            break;
-        case QMediaPlayer::InvalidMedia:
-            display_error_message();
-            break;
+        display_error_message();
     }
 }
 
