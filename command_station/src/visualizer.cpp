@@ -64,8 +64,8 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     auto color = off_color;
                     auto color_description = line["color"];
                     auto r = color_description[0];
-                    auto b = color_description[1];
-                    auto g = color_description[2];
+                    auto g = color_description[1];
+                    auto b = color_description[2];
                     if (on_channels[suit_idx][channel_idx])
                     {
                         if ((back && line["back"]) || (front && line["front"]))
@@ -91,8 +91,8 @@ void Visualizer::paintEvent(QPaintEvent *event)
                     auto color = off_color;
                     auto color_description = circle["color"];
                     auto r = color_description[0];
-                    auto b = color_description[1];
-                    auto g = color_description[2];
+                    auto g = color_description[1];
+                    auto b = color_description[2];
                     if (on_channels[suit_idx][channel_idx])
                     {
                         if ((back && circle["back"]) || (front && circle["front"]))
