@@ -35,6 +35,14 @@ uint8_t get_suit_number();
 void flashLed(unsigned int on_time);
 
 void setup() {
+  /**
+   * 1. Check if its possible to upload code wirelessly.....
+   * 2. Add delay on startup to see if that fixes power on issues
+   */
+    
+  // FIX 2
+  delay(1000);
+   
   pinMode(led_pin, OUTPUT);
   for (auto const pin : channel_to_pin) {
     pinMode(pin, OUTPUT);
@@ -46,28 +54,6 @@ void setup() {
   xbee.setSerial(Serial);
 
   suit_number = get_suit_number();
-  nss.print("Suit number: ");
-  nss.println(suit_number);
-
-  for (auto i = 0u; i < suit_number; ++i) {
-    flashLed(250);
-    delay(250);
-  }
-
-  for (auto const pin : channel_to_pin) {
-    digitalWrite(pin, HIGH);
-  }
-  delay(1000);
-  flashLed(500);
-  delay(1000);
-  
-  for (auto const pin : channel_to_pin) {
-    digitalWrite(pin, LOW);
-  }
-
-  delay(1000);
-  flashLed(500);
-  delay(1000);
 }
 
 void loop() {

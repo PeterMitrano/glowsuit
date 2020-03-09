@@ -3,7 +3,7 @@
 #include <QString>
 #include <QThread>
 
-#include <midi/midi_input.h>
+#include <midi/live_midi_input.h>
 #include <sstream>
 #include <common.h>
 

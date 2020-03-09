@@ -411,6 +411,10 @@ void MainWidget::all_on_clicked()
             emit gui_midi_event(suit_idx, midi_note_on, channel_idx);
         }
     }
+    State all_on_data;
+    all_on_data.data.fill(0xFF);
+    auto const[packet, size] = make_packet(all_on_data);
+    xbee_serial->write(packet.data(), size);
 }
 
 void MainWidget::all_off_clicked()
@@ -422,6 +426,9 @@ void MainWidget::all_off_clicked()
             emit gui_midi_event(suit_idx, midi_note_off, channel_idx);
         }
     }
+    State all_off_data; // default constructor fills to zero
+    auto const[packet, size] = make_packet(all_off_data);
+    xbee_serial->write(packet.data(), size);
 }
 
 void MainWidget::keyReleaseEvent(QKeyEvent *event)

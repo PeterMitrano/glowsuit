@@ -245,65 +245,6 @@
       ]
     },
     {
-      "name": "left_arm",
-      "lines": [
-        {
-          "x1": 30,
-          "y1": 25,
-          "x2": 15,
-          "y2": 31,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 15,
-          "y1": 31,
-          "x2": 3,
-          "y2": 66,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 3,
-          "y1": 66,
-          "x2": 8,
-          "y2": 99,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 8,
-          "y1": 99,
-          "x2": 18,
-          "y2": 99,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 18,
-          "y1": 99,
-          "x2": 15,
-          "y2": 66,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 15,
-          "y1": 66,
-          "x2": 21,
-          "y2": 57,
-          "color": [ 0, 0, 255 ],
-          "front": true,
-          "back": true
-        }
-      ]
-    },
-    {
       "name": "right_arm",
       "lines": [
         {
@@ -355,6 +296,65 @@
           "x1": 75,
           "y1": 66,
           "x2": 69,
+          "y2": 57,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        }
+      ]
+    },
+    {
+      "name": "left_arm",
+      "lines": [
+        {
+          "x1": 30,
+          "y1": 25,
+          "x2": 15,
+          "y2": 31,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 15,
+          "y1": 31,
+          "x2": 3,
+          "y2": 66,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 3,
+          "y1": 66,
+          "x2": 8,
+          "y2": 99,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 8,
+          "y1": 99,
+          "x2": 18,
+          "y2": 99,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 18,
+          "y1": 99,
+          "x2": 15,
+          "y2": 66,
+          "color": [ 0, 0, 255 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 15,
+          "y1": 66,
+          "x2": 21,
           "y2": 57,
           "color": [ 0, 0, 255 ],
           "front": true,
@@ -434,56 +434,6 @@
       ]
     },
     {
-      "name": "left_leg",
-      "lines": [
-        {
-          "x1": 21,
-          "y1": 105,
-          "x2": 21,
-          "y2": 180,
-          "color": [ 255, 255, 0 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 21,
-          "y1": 180,
-          "x2": 39,
-          "y2": 180,
-          "color": [ 255, 255, 0 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 39,
-          "y1": 180,
-          "x2": 43,
-          "y2": 115,
-          "color": [ 255, 255, 0 ],
-          "front": true,
-          "back": true
-        },
-        {
-          "x1": 23,
-          "y1": 135,
-          "x2": 40,
-          "y2": 135,
-          "color": [ 0, 255, 0 ],
-          "front": true,
-          "back": false
-        },
-        {
-          "x1": 23,
-          "y1": 141,
-          "x2": 39,
-          "y2": 141,
-          "color": [ 255, 255, 255 ],
-          "front": true,
-          "back": false
-        }
-      ]
-    },
-    {
       "name": "right_leg",
       "lines": [
         {
@@ -526,6 +476,56 @@
           "x1": 67,
           "y1": 141,
           "x2": 51,
+          "y2": 141,
+          "color": [ 255, 255, 255 ],
+          "front": true,
+          "back": false
+        }
+      ]
+    },
+    {
+      "name": "left_leg",
+      "lines": [
+        {
+          "x1": 21,
+          "y1": 105,
+          "x2": 21,
+          "y2": 180,
+          "color": [ 255, 255, 0 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 21,
+          "y1": 180,
+          "x2": 39,
+          "y2": 180,
+          "color": [ 255, 255, 0 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 39,
+          "y1": 180,
+          "x2": 43,
+          "y2": 115,
+          "color": [ 255, 255, 0 ],
+          "front": true,
+          "back": true
+        },
+        {
+          "x1": 23,
+          "y1": 135,
+          "x2": 40,
+          "y2": 135,
+          "color": [ 0, 255, 0 ],
+          "front": true,
+          "back": false
+        },
+        {
+          "x1": 23,
+          "y1": 141,
+          "x2": 39,
           "y2": 141,
           "color": [ 255, 255, 255 ],
           "front": true,

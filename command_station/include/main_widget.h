@@ -15,7 +15,7 @@
 
 #include <../src/ui_mainwidget.h>
 
-#include <midi/midi_input.h>
+#include <midi/live_midi_input.h>
 #include <midi/midi_file_player.h>
 #include <serial/serial.h>
 #include <visualizer.h>

@@ -26,23 +26,23 @@ endif ()
 file(GLOB midi_src src/midi/*.cpp)
 if (WIN32)
     list(APPEND midi_src
-            src/midi/midi_input.cpp
-            include/midi/midi_input.h
+            src/midi/live_midi_input.cpp
+            include/midi/live_midi_input.h
             include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_compile_definitions(midi PUBLIC __WINDOWS_MM__)
 elseif (UNIX AND NOT APPLE)
     list(APPEND midi_src
-            src/midi/midi_input.cpp
-            include/midi/midi_input.h
+            src/midi/live_midi_input.cpp
+            include/midi/live_midi_input.h
             include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC pthread asound)
     target_compile_definitions(midi PUBLIC __LINUX_ALSA__)
 elseif (APPLE)
     list(APPEND midi_src
-            src/midi/midi_input.cpp
-            include/midi/midi_input.h
+            src/midi/live_midi_input.cpp
+            include/midi/live_midi_input.h
             include/midi/midi_file_player.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC
