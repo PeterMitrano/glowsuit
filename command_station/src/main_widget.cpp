@@ -68,6 +68,7 @@ MainWidget::MainWidget(QWidget *parent)
             &MidiFilePlayer::octave_spinbox_changed);
     connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
             &LiveMidiWorker::octave_spinbox_changed);
+    connect(ui.user_visualizer_checkbox, &QCheckBox::stateChanged, visualizer, &Visualizer::use_visualizer_checked);
 
     set_state(music_player->state());
 
@@ -190,6 +191,7 @@ void MainWidget::save_settings()
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
     settings->setValue("gui/xbee_port", previously_selected_port_name);
+    settings->setValue("gui/use_visualizer", visualizer->use_visualizer);
 }
 
 void MainWidget::restore_settings()
@@ -209,6 +211,7 @@ void MainWidget::restore_settings()
     ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
     ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
     ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
+    ui.user_visualizer_checkbox->setChecked(settings->value("gui/use_visualizer").toBool());
     ui.track_spinbox->setValue(settings->value("gui/track").toInt());
     controls_hidden = settings->value("gui/controls_hidden").toBool();
     ui.controls_widget->setVisible(!controls_hidden);
@@ -414,7 +417,10 @@ void MainWidget::all_on_clicked()
     State all_on_data;
     all_on_data.data.fill(0xFF);
     auto const[packet, size] = make_packet(all_on_data);
-    xbee_serial->write(packet.data(), size);
+    if (xbee_serial)
+    {
+        xbee_serial->write(packet.data(), size);
+    }
 }
 
 void MainWidget::all_off_clicked()
@@ -428,7 +434,10 @@ void MainWidget::all_off_clicked()
     }
     State all_off_data; // default constructor fills to zero
     auto const[packet, size] = make_packet(all_off_data);
-    xbee_serial->write(packet.data(), size);
+    if (xbee_serial)
+    {
+        xbee_serial->write(packet.data(), size);
+    }
 }
 
 void MainWidget::keyReleaseEvent(QKeyEvent *event)

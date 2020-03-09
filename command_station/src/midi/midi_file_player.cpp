@@ -95,8 +95,14 @@ void MidiFilePlayer::midi_file_changed(QString const midi_filename)
 
 void MidiFilePlayer::start_thread()
 {
+    /** Alternative plan:
+     *  - every 100ms, second the next 100 choreo events
+     *  - time is included in each message so suits can stay synced include constant offset to account for latency?)
+     */
     auto func = [&]()
     {
+        Window states_window;
+
         while (!killed)
         {
             if (!playing)
@@ -111,33 +117,37 @@ void MidiFilePlayer::start_thread()
 
             current_song_time_ms = current_song_time(latest_clock_reference, latest_song_time_reference);
 
-            // check if it's time to emit the next midi event based on the estimated current time
-            auto const pair = states_vector[current_state_idx];
-            auto const onset_ms = pair.first;
-            if (current_song_time_ms >= onset_ms)
+            // check the next onsets until we find the event which is about to come next
+
+            // Create window of the next 100 events
+            states_window.current_song_time = current_song_time_ms;
+            for (auto window_idx{0u}; window_idx < WindowSize; ++window_idx)
             {
-
-                // visualizer
-                auto const state = pair.second;
-                emit_to_visualizer(state);
-
-                // transmit
-                if (xbee_serial)
+                auto const state_vector_idx = current_state_idx + window_idx;
+                // only fill as much events as we actuall have. The rest will be zeros, by default
+                if (state_vector_idx < states_vector.size())
                 {
-                    try
-                    {
-                        xbee_serial->write(state.data.data(), message_size);
-                    } catch (serial::SerialException)
-                    {
-                        // pass
-                    }
+                    states_window.states[window_idx] = states_vector[state_vector_idx].state;
                 }
+            }
+            emit_to_xbee(states_window);
+
+            // visualizer has perfect "communication" so we just call it when necessary
+            auto const current_state = states_vector[current_state_idx];
+            if (current_song_time_ms >= current_state.onset_ms)
+            {
+                emit_to_visualizer(current_state.state);
                 ++current_state_idx;
             }
+            QThread::msleep(100);
         }
     };
     // start running func in another thread.
     thread = std::thread(func);
+}
+
+void MidiFilePlayer::emit_to_xbee(Window const &states_window)
+{
 }
 
 void MidiFilePlayer::emit_to_visualizer(State const &state)
@@ -154,17 +164,18 @@ void MidiFilePlayer::emit_to_visualizer(State const &state)
             emit midi_event(suit_idx + 1, command, channel_number);
         }
     }
+}
 
-    // transmit
-    if (xbee_serial != nullptr)
+void MidiFilePlayer::emit_to_xbee(State const &state)
+{
+    if (xbee_serial)
     {
         try
         {
-            auto const[packet, size] = make_packet(state);
-            xbee_serial->write(packet.data(), size);
-        } catch (serial::SerialException se)
+            xbee_serial->write(state.data.data(), message_size);
+        } catch (serial::SerialException)
         {
-            // try to continue as if everything is fine.
+            // pass
         }
     }
 }
@@ -180,9 +191,9 @@ void MidiFilePlayer::seek(int time_ms)
     // also reset the index to the midi event which is the next one after time_ms
     latest_song_time_reference = time_ms;
     latest_clock_reference = std::chrono::high_resolution_clock::now();
-    auto predicate = [&](std::pair<int, State> const &pair)
+    auto predicate = [&](OnsetState const &onset_state)
     {
-        auto const onset_ms = pair.first;
+        auto const onset_ms = onset_state.onset_ms;
         return onset_ms >= time_ms;
     };
     auto find_it = std::find_if(states_vector.begin(), states_vector.end(), predicate);

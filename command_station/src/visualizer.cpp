@@ -47,6 +47,11 @@ void Visualizer::paintEvent(QPaintEvent *event)
         return;
     }
 
+    if (!use_visualizer)
+    {
+        return;
+    }
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
@@ -182,4 +187,9 @@ void Visualizer::my_resize()
 {
     auto const width = static_cast<int>(scale * num_suits * suit_width + offset_x * 2);
     setMinimumSize(width, static_cast<int>(scale * base_height));
+}
+
+void Visualizer::use_visualizer_checked(bool checked)
+{
+    use_visualizer = checked;
 }

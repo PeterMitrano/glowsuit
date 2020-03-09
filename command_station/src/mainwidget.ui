@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
+    <width>633</width>
     <height>323</height>
    </rect>
   </property>
@@ -348,6 +348,13 @@ color: #000000;
              </spacer>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="user_visualizer_checkbox">
+            <property name="text">
+             <string>Use Visualizer</string>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="verticalSpacer">

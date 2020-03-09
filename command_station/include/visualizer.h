@@ -29,6 +29,7 @@ public:
     double scale{1.0};
     std::optional<json> suit_description;
     bool viz_from_live_midi{false};
+    bool use_visualizer{true};
 
     int load_suit();
 
@@ -49,6 +50,8 @@ public slots:
     void on_midi_file_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
     void generic_on_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
+
+    void use_visualizer_checked(bool checked);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

@@ -13,11 +13,26 @@
 #include <midi/MidiFile.h>
 #include <common.h>
 
-using OnsetStatePair = std::pair<int, State>;
-using OnsetStateVec = std::vector<OnsetStatePair>;
+struct OnsetState
+{
+    int onset_ms;
+    State state;
+
+    OnsetState(int onset_ms, State state) : onset_ms(onset_ms), state(state) {}
+};
+
+using OnsetStateVec = std::vector<OnsetState>;
 using TimePoint = std::chrono::high_resolution_clock::time_point;
 
 qint64 current_song_time(TimePoint clock_reference, qint64 song_time_reference);
+
+constexpr auto const WindowSize{100u};
+
+struct Window
+{
+    std::array<State, WindowSize> states;
+    qint64 current_song_time{};
+};
 
 class MidiFilePlayer : public QObject
 {
@@ -35,7 +50,13 @@ public:
 
     void parse_track();
 
+    void emit_to_visualizer(Window const &states_window);
+
     void emit_to_visualizer(State const &state);
+
+    void emit_to_xbee(Window const &states_window);
+
+    void emit_to_xbee(State const &state);
 
 signals:
 
@@ -75,5 +96,6 @@ private:
     qint64 current_song_time_ms{0};
     size_t current_state_idx{0ul};
     TimePoint latest_clock_reference;
+    bool use_visualizer{true};
     int track_number{0};
 };
