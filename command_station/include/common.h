@@ -19,3 +19,16 @@ constexpr int baud_rate = 57600;
 
 constexpr int midi_note_off = 128;
 constexpr int midi_note_on = 144;
+
+template<typename T>
+std::vector<uint8_t> to_bytes(T t)
+{
+    std::vector<uint8_t> bytes;
+    for (auto i{0u}; i < sizeof(t); ++i)
+    {
+        uint8_t const byte = (t >> (i * 8)) & 0xFF;
+        bytes.emplace_back(byte);
+    }
+    std::reverse(bytes.begin(), bytes.end());
+    return bytes;
+}
