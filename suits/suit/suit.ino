@@ -63,6 +63,13 @@ void loop() {
     if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
       xbee.getResponse().getRx16Response(rx16);
 
+      // now the response is:
+      // 1 byte for time
+      // 1 byte for window size
+      // 6 bytes for suits (0)
+      // 6 bytes for suits (1)
+      // ...
+      // 6 bytes for suits (window_size-1)
       uint8_t bit_pattern = rx16.getData(suit_number - 1);
       size_t bit_idx = 0;
       for (auto const pin : channel_to_pin) {

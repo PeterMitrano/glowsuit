@@ -13,15 +13,15 @@
 #include <midi/MidiFile.h>
 #include <common.h>
 
-struct OnsetState
+struct Event
 {
     int onset_ms;
     State state;
 
-    OnsetState(int onset_ms, State state) : onset_ms(onset_ms), state(state) {}
+    Event(int onset_ms, State state) : onset_ms(onset_ms), state(state) {}
 };
 
-using OnsetStateVec = std::vector<OnsetState>;
+using OnsetStateVec = std::vector<Event>;
 using TimePoint = std::chrono::high_resolution_clock::time_point;
 
 qint64 current_song_time(TimePoint clock_reference, qint64 song_time_reference);
@@ -30,7 +30,7 @@ constexpr auto const WindowSize{100u};
 
 struct Window
 {
-    std::array<State, WindowSize> states;
+    std::array<Event, WindowSize> events;
     qint64 current_song_time{};
 };
 
@@ -88,13 +88,13 @@ private:
     int octave_offset{0};
     bool playing{false};
     smf::MidiFile midifile;
-    OnsetStateVec states_vector;
+    OnsetStateVec all_events;
     QMutex mutex;
     bool killed{false};
     std::thread thread;
     qint64 latest_song_time_reference{0};
     qint64 current_song_time_ms{0};
-    size_t current_state_idx{0ul};
+    size_t current_event_idx{0ul};
     TimePoint latest_clock_reference;
     bool use_visualizer{true};
     int track_number{0};

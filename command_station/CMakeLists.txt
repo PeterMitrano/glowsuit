@@ -70,3 +70,6 @@ set(command_station_src
 add_executable(command_station WIN32 ${command_station_src})
 target_include_directories(command_station PUBLIC include)
 target_link_libraries(command_station PUBLIC midi serial Qt5::Core Qt5::Widgets Qt5::Multimedia)
+
+add_executable(test test/test.cpp src/common.cpp)
+target_include_directories(test PUBLIC include)

@@ -5,7 +5,7 @@
 std::pair<std::vector<uint8_t>, size_t> make_packet(State state)
 {
     auto data = state.data;
-    uint8_t const length_lb = message_size + 5;
+    uint8_t const length_lb = BytesPerMessage + 5;
     constexpr uint8_t api_identifier = 0x01;
     constexpr uint8_t frame_id = 0x01; // TODO: should we bother setting this?
     constexpr uint8_t address_lb = 0x01;
