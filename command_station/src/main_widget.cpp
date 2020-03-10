@@ -414,7 +414,10 @@ void MainWidget::all_on_clicked()
     State all_on_data;
     all_on_data.data.fill(0xFF);
     auto const[packet, size] = make_packet(all_on_data);
-    xbee_serial->write(packet.data(), size);
+    if (xbee_serial)
+    {
+        xbee_serial->write(packet.data(), size);
+    }
 }
 
 void MainWidget::all_off_clicked()
@@ -428,7 +431,10 @@ void MainWidget::all_off_clicked()
     }
     State all_off_data; // default constructor fills to zero
     auto const[packet, size] = make_packet(all_off_data);
-    xbee_serial->write(packet.data(), size);
+    if (xbee_serial)
+    {
+        xbee_serial->write(packet.data(), size);
+    }
 }
 
 void MainWidget::keyReleaseEvent(QKeyEvent *event)
