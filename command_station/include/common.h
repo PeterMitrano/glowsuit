@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 #include <byteset.h>
 
@@ -11,7 +12,19 @@ constexpr int message_size = 6;
 
 using State = Byteset<message_size>;
 
+// FIXME: refactor xbee out into separate library
 std::pair<std::vector<uint8_t>, size_t> make_packet(State state);
+
+std::pair<std::vector<uint8_t>, size_t> make_packet(std::vector<uint8_t> const &data);
+
+struct Packet {
+    uint16_t source_address;
+    std::vector<uint8_t> data;
+};
+
+Packet parse_packet(std::vector<uint8_t> const &data);
+
+void print_packet(std::vector<uint8_t> const &packet);
 
 constexpr std::size_t num_suits = 6;
 constexpr int midi_note_offset = 60;

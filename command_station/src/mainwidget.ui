@@ -439,6 +439,9 @@ color: #000000;
               <layout class="QHBoxLayout" name="start_layout">
                <item>
                 <widget class="QPushButton" name="start_button">
+                 <property name="toolTip">
+                  <string>Start the choreo. Includes a 30 second delay for synchronizing</string>
+                 </property>
                  <property name="text">
                   <string>Start!</string>
                  </property>
@@ -474,6 +477,9 @@ color: #000000;
               <layout class="QHBoxLayout" name="abort_layout">
                <item>
                 <widget class="QPushButton" name="abort_button">
+                 <property name="toolTip">
+                  <string>cancel the sync process. Does not stop the suits, those must be reset.</string>
+                 </property>
                  <property name="text">
                   <string>Abort</string>
                  </property>

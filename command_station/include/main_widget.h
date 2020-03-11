@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <thread>
 #include <map>
 #include <optional>
 
@@ -46,6 +47,8 @@ public:
     void handle_cursor(QMediaPlayer::MediaStatus status);
 
     void blink_midi_indicator();
+
+    void sendTime(long dt_ms);
 
 public slots:
 
@@ -100,8 +103,11 @@ private:
 
     QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
     QMediaPlayer *music_player{nullptr};
+    std::thread sync_xbees_thread;
 
     qint64 song_duration_ms{0};
+    uint8_t num_suits{0u};
+    bool aborted{false};
     QTimer *timer{nullptr};
     int num_channels{0};
     bool controls_hidden{false};

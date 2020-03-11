@@ -15,8 +15,11 @@ def main():
     ser = serial.Serial(args.xbee_port, 57600)
     xbee = XBee(ser)
     while True:
-        response = xbee.wait_read_frame()
-        print(response)
+        try:
+            response = xbee.wait_read_frame()
+            print(str(response['rf_data']))
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':

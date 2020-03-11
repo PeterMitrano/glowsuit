@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -218,8 +220,7 @@ void MainWidget::update_serial_port_list()
     {
         return (new_port.description.find("Serial Port") == std::string::npos) &&
                (new_port.description.find("USB") == std::string::npos) &&
-                (new_port.description.find("usbmodem") == std::string::npos)
-               ;
+               (new_port.description.find("usbmodem") == std::string::npos);
     };
     new_ports.erase(std::remove_if(new_ports.begin(), new_ports.end(), probably_not_serial), new_ports.end());
 
@@ -308,6 +309,7 @@ void MainWidget::keyReleaseEvent(QKeyEvent *event)
 
 void MainWidget::num_suits_changed(int value)
 {
+    num_suits = value;
     for (auto *checkbox : suit_status_checkboxes)
     {
         ui.suit_checkbox_layout->removeWidget(checkbox);
@@ -315,11 +317,11 @@ void MainWidget::num_suits_changed(int value)
     }
     suit_status_checkboxes.clear();
 
-    for (auto i=0; i < value; ++i)
+    for (auto i = 0; i < value; ++i)
     {
         auto *checkbox = new QCheckBox(this);
-        checkbox->setText(QString::number(i));
-        checkbox->setCheckable(false);
+        checkbox->setText(QString::number(i + 1));
+        checkbox->setEnabled(false);
         suit_status_checkboxes.emplace_back(checkbox);
         ui.suit_checkbox_layout->addWidget(checkbox);
     }
@@ -327,7 +329,22 @@ void MainWidget::num_suits_changed(int value)
 
 void MainWidget::abort_clicked()
 {
-    // abort!!!!
+    for (auto *checkbox : suit_status_checkboxes)
+    {
+        checkbox->setChecked(true);
+    }
+
+    music_player->stop();
+    aborted = true;
+    if (sync_xbees_thread.joinable())
+    {
+        sync_xbees_thread.join();
+    }
+
+    for (auto *checkbox : suit_status_checkboxes)
+    {
+        checkbox->setChecked(false);
+    }
 }
 
 void MainWidget::start_clicked()
@@ -338,8 +355,103 @@ void MainWidget::start_clicked()
         return;
     }
 
-    State all_on_data;
-    all_on_data.data.fill(0xFF);
-    auto const[packet, size] = make_packet(all_on_data);
-    xbee_serial->write(time.data(), size);
+    // make sure the thread isn't still running
+    if (sync_xbees_thread.joinable())
+    {
+        sync_xbees_thread.join();
+    }
+
+    auto func = [&]()
+    {
+        // this right here defined the entire global song time for everyone
+        auto const start_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+        auto const start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(start_time).count();
+
+        bool done = false;
+        std::vector<uint8_t> suits_ready;
+        constexpr auto tx_status_message_size = 7u;
+        std::vector<uint8_t> tx_status_message_buffer;
+        tx_status_message_buffer.resize(tx_status_message_size);
+        constexpr auto ready_message_size = 10u;
+        std::vector<uint8_t> ready_message_buffer;
+        ready_message_buffer.resize(ready_message_size);
+        aborted = false;
+        while (!aborted)
+        {
+            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+            auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
+            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
+
+            sendTime(dt_ms);
+
+            QThread::msleep(100);
+
+            if (dt_ms > 5000)
+            {
+                break;
+            }
+        }
+
+        if (aborted)
+        {
+            return;
+        }
+
+        std::cout << "Waiting to start...\n";
+
+        // Everyone is ready! wait until 30 seconds then start the music
+        constexpr auto startup_delay_ms = 15000;
+        while (true)
+        {
+            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+            auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
+            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
+            if (dt_ms <= startup_delay_ms - 500)
+            {
+                std::cout << dt_ms << "\n";
+                QThread::sleep(1);
+            }
+            if (dt_ms >= startup_delay_ms)
+            {
+                break;
+            }
+        }
+
+        // Start the music!
+        music_player->play();
+
+//        while (true)
+//        {
+//            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+//            auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
+//            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
+//
+//            QThread::sleep(1);
+//
+//            sendTime(dt_ms);
+//            std::cout << dt_ms << '\n';
+//
+//            // TODO: make this based on song length
+//            if (dt_ms >= 5 * 60 * 1000)
+//            {
+//                break;
+//            }
+//        }
+    };
+
+    sync_xbees_thread = std::thread(func);
+}
+
+void MainWidget::sendTime(long const dt_ms)
+{
+    auto const time_bytes = to_bytes<uint32_t>(dt_ms);
+
+    try
+    {
+        auto const[packet, size] = make_packet(time_bytes);
+        xbee_serial->write(packet.data(), size);
+    } catch (serial::SerialException &)
+    {
+        std::cerr << "time message failed to send! \n";
+    }
 }
