@@ -51,6 +51,9 @@ void LiveMidiWorker::start_midi()
 
     while (true)
     {
+        // tiny sleep to prevent eating CPU
+        QThread::msleep(1);
+
         if (QThread::currentThread()->isInterruptionRequested())
         {
             break;
