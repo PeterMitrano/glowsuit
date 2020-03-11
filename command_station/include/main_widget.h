@@ -48,7 +48,7 @@ public:
 
     void blink_midi_indicator();
 
-    void sendTime(long dt_ms);
+    uint32_t sendTime(long dt_ms);
 
 public slots:
 

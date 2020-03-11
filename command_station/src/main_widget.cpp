@@ -119,7 +119,7 @@ void MainWidget::live_midi_changed(int state)
 void MainWidget::xbee_port_changed(int index)
 {
     auto const port_name = ui.xbee_port_combobox->itemText(index).toStdString();
-    xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(1000));
+    xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(50));
 
     // TODO: is this an error? possible data race
     live_midi_worker->xbee_serial = xbee_serial;
@@ -367,7 +367,8 @@ void MainWidget::start_clicked()
         auto const start_time = std::chrono::high_resolution_clock::now().time_since_epoch();
         auto const start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(start_time).count();
 
-        bool done = false;
+        constexpr auto startup_delay_ms = 5000;
+
         std::vector<uint8_t> suits_ready;
         constexpr auto tx_status_message_size = 7u;
         std::vector<uint8_t> tx_status_message_buffer;
@@ -378,15 +379,12 @@ void MainWidget::start_clicked()
         aborted = false;
         while (!aborted)
         {
-            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
-            auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
-            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
 
-            sendTime(dt_ms);
+            auto const dt_ms = sendTime(start_ms);
 
             QThread::msleep(100);
 
-            if (dt_ms > 5000)
+            if (dt_ms > std::max(0, startup_delay_ms - 1000))
             {
                 break;
             }
@@ -399,18 +397,12 @@ void MainWidget::start_clicked()
 
         std::cout << "Waiting to start...\n";
 
-        // Everyone is ready! wait until 30 seconds then start the music
-        constexpr auto startup_delay_ms = 15000;
-        while (true)
+        while (!aborted)
         {
             auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
             auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
             auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
-            if (dt_ms <= startup_delay_ms - 500)
-            {
-                std::cout << dt_ms << "\n";
-                QThread::sleep(1);
-            }
+
             if (dt_ms >= startup_delay_ms)
             {
                 break;
@@ -420,38 +412,53 @@ void MainWidget::start_clicked()
         // Start the music!
         music_player->play();
 
-//        while (true)
-//        {
-//            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
-//            auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
-//            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
-//
-//            QThread::sleep(1);
-//
-//            sendTime(dt_ms);
-//            std::cout << dt_ms << '\n';
-//
-//            // TODO: make this based on song length
-//            if (dt_ms >= 5 * 60 * 1000)
+        unsigned long idx = 1;
+        while (!aborted)
+        {
+            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+            auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
+            now_ms = static_cast<uint32_t>(now_ms - start_ms - startup_delay_ms);
+            auto const next_onset_ms = idx * 1000ull;
+            if (now_ms >= next_onset_ms)
+            {
+                ++idx;
+                sendTime(start_ms);
+            }
+
+            // print any data we get back
+//            auto packet = read_packet(xbee_serial);
+//            if (packet and packet->command_id == RX_16)
 //            {
-//                break;
+//                for (auto const &byte : packet->data)
+//                {
+//                    if (byte >= 32 and byte < 127)
+//                    {
+//                        std::cout << byte;
+//                    }
+//                }
+//                std::cout << std::endl;
 //            }
-//        }
+        }
     };
 
     sync_xbees_thread = std::thread(func);
 }
 
-void MainWidget::sendTime(long const dt_ms)
+uint32_t MainWidget::sendTime(long const start_ms)
 {
+    auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+    auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
+    auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
     auto const time_bytes = to_bytes<uint32_t>(dt_ms);
 
     try
     {
-        auto const[packet, size] = make_packet(time_bytes);
-        xbee_serial->write(packet.data(), size);
+        auto const[tx_packet, size] = make_packet(time_bytes);
+        xbee_serial->write(tx_packet.data(), size);
     } catch (serial::SerialException &)
     {
         std::cerr << "time message failed to send! \n";
     }
+
+    return dt_ms;
 }

@@ -69,27 +69,69 @@ void print_packet(std::vector<uint8_t> const &packet)
         printf("%02X ", static_cast<unsigned int>(byte));
     }
     std::cout << std::endl;
-}
+};
 
-Packet parse_packet(std::vector<uint8_t> const &data)
+std::optional<Packet> read_packet(serial::Serial *xbee_serial)
 {
     Packet packet;
+
+    std::vector<uint8_t> data;
+    auto bytes_read = xbee_serial->read(data, 1);
+
+    // check if a new packet is available
+    if (bytes_read != 1 or data[0] != 0x7E)
+    {
+        return std::optional<Packet>();
+    }
+
+    // if it is, read the length and command ID
+    bytes_read = xbee_serial->read(data, 3);
+
+    if (bytes_read != 3)
+    {
+        // something went wrong -- abort!
+        return std::optional<Packet>();
+    }
 
     auto const length_hb = data[1];
     auto const length_lb = data[2];
     auto const length = (length_hb << 8u) + length_lb;
-    auto const data_length = length - 5;
 
-    auto const source_address_hb = data[4];
-    auto const source_address_lb = data[5];
-    auto const source_address = (source_address_hb << 8u) + source_address_lb;
+    auto const command_id = data[3];
+    packet.command_id = command_id;
 
-    packet.source_address = source_address;
-    auto start_idx = 8u;
-    for (auto offset = 0; offset < data_length; ++offset)
+    bytes_read = xbee_serial->read(data, length);
+    if (bytes_read != length)
     {
-        packet.data.push_back(data[start_idx + offset]);
+        // something went wrong -- abort!
+        return std::optional<Packet>();
     }
 
-    return packet;
+    switch (command_id)
+    {
+        case RX_16: // RX (Receive) 16 bit
+        {
+            auto const data_length = length - 5;
+            auto const source_address_hb = data[4];
+            auto const source_address_lb = data[5];
+            auto const source_address = (source_address_hb << 8u) + source_address_lb;
+            packet.source_address = source_address;
+            auto start_idx = 8u;
+            for (auto offset = 0; offset < data_length; ++offset)
+            {
+                packet.data.push_back(data[start_idx + offset]);
+            }
+            return packet;
+        }
+        case TX_STATUS:
+        {
+            return packet;
+        }
+        default:
+        {
+            std::cout << "API command " << std::hex << command_id << " not supported!\n";
+            return std::optional<Packet>();
+        }
+    }
 }
+

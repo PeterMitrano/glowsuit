@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <cstdint>
 #include <cstddef>
 #include <vector>
@@ -7,6 +8,7 @@
 #include <algorithm>
 
 #include <byteset.h>
+#include <serial/serial.h>
 
 constexpr int message_size = 6;
 
@@ -17,12 +19,17 @@ std::pair<std::vector<uint8_t>, size_t> make_packet(State state);
 
 std::pair<std::vector<uint8_t>, size_t> make_packet(std::vector<uint8_t> const &data);
 
-struct Packet {
-    uint16_t source_address;
+constexpr uint8_t RX_16{0x81};
+constexpr uint8_t TX_STATUS{0x89};
+
+struct Packet
+{
+    uint16_t source_address{0};
+    uint8_t command_id{0};
     std::vector<uint8_t> data;
 };
 
-Packet parse_packet(std::vector<uint8_t> const &data);
+std::optional<Packet> read_packet(serial::Serial *xbee_serial);
 
 void print_packet(std::vector<uint8_t> const &packet);
 
