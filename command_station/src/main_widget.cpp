@@ -66,6 +66,19 @@ MainWidget::MainWidget(QWidget *parent)
     connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::any_event);
     live_midi_thread.start();
 
+    for (auto suit_idx{0u}; suit_idx < num_suits; ++suit_idx)
+    {
+        auto *suit_worker = new SuitWorker(suit_idx);
+        auto *suit_thread = new QThread();
+        suit_worker->moveToThread(suit_thread);
+        connect(suit_thread, &QThread::started, suit_worker, &SuitWorker::start);
+        connect(suit_worker, &SuitWorker::my_finished, suit_thread, &QThread::quit);
+        connect(suit_worker, &SuitWorker::midi_event, visualizer, &Visualizer::on_midi_file_event);
+
+        suit_workers.push_back(suit_worker);
+        suit_threads.push_back(suit_thread);
+    }
+
     connect(this, &MainWidget::gui_midi_event, visualizer, &Visualizer::generic_on_midi_event);
 
     timer = new QTimer(this);
@@ -87,18 +100,33 @@ MainWidget::MainWidget(QWidget *parent)
 
         ui.midi_file_group->setEnabled(false);
     }
+
+    // start fake suit programs
 }
 
 MainWidget::~MainWidget()
 {
+    // stop music
     music_player->stop();
 
+    // stop all threads
     live_midi_thread.requestInterruption();
     live_midi_thread.quit();
     live_midi_thread.wait();
 
+    for (auto *suit_thread: suit_threads)
+    {
+        suit_thread->requestInterruption();
+        suit_thread->quit();
+        suit_thread->wait();
+    }
+
     // delete pointers that have no parents
     delete live_midi_worker;
+    for (auto *suit_worker : suit_workers)
+    {
+        delete suit_worker;
+    }
 }
 
 void MainWidget::music_file_button_clicked()

@@ -20,6 +20,7 @@
 #include <midi/live_midi_input.h>
 #include <serial/serial.h>
 #include <visualizer.h>
+#include <suit_worker.h>
 
 std::optional<json> load_suit_description();
 
@@ -97,6 +98,8 @@ signals:
 public:
     Visualizer *visualizer{nullptr};
     LiveMidiWorker *live_midi_worker{nullptr};
+    std::vector<SuitWorker *> suit_workers;
+    std::vector<QThread *> suit_threads;
     QString music_filename;
     QString midi_filename;
     QThread live_midi_thread;

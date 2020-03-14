@@ -57,10 +57,12 @@ target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia)
 set(command_station_src
         src/common.cpp
         src/command_station.cpp
+        src/suit_worker.cpp
         src/visualizer.cpp
         src/main_widget.cpp
         include/main_widget.h
         include/visualizer.h
+        include/suit_worker.h
         rc/command_station.qrc)
 
 # win32 has no effect on osx/linux, so we can use it here without ifdefs

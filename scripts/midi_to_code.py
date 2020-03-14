@@ -29,7 +29,7 @@ def main():
     # A binary string representing the state
 
     choreo_by_suit = [[] for _ in range(num_suits)]
-    states = [bitarray(num_channels)] * num_suits
+    states = [bitarray(num_channels) for _ in range(num_suits)]
     for state in states:
         state.setall(0)
 
@@ -40,8 +40,6 @@ def main():
             note = midi_event.note - middle_c
             float_time_in_centiseconds += midi_event.time * 100
             suit_number = int(note // num_channels)
-            if suit_number == 0:
-                print(float_time_in_centiseconds, states[suit_number])
             channel = note % num_channels
             bit_idx = num_channels - channel - 1
             if midi_event.type == 'note_on':
@@ -52,28 +50,18 @@ def main():
             # check if the state has actually changed. if it hasn't dont add the event
             new_state = states[suit_number]
             int_time_in_centiseconds = int(round(float_time_in_centiseconds, 0))
-            # if len(choreo_by_suit[suit_number]) > 0:
-            #     last_time, last_state = choreo_by_suit[suit_number][-1]
-            #     if last_state == new_state:
-            #         continue
-                # elif last_time == int_time_in_centiseconds:
-                #     # edit the previous event
-                #     choreo_by_suit[suit_number][-1] = (int_time_in_centiseconds, new_state.copy())
-                #     states[suit_number] = new_state.copy()
-                #     continue
+            if len(choreo_by_suit[suit_number]) > 0:
+                last_time, last_state = choreo_by_suit[suit_number][-1]
+                if last_state == new_state:
+                    continue
+                elif last_time == int_time_in_centiseconds:
+                    # edit the previous event
+                    choreo_by_suit[suit_number][-1] = (int_time_in_centiseconds, new_state.copy())
+                    states[suit_number] = new_state.copy()
+                    continue
 
             new_event = (int_time_in_centiseconds, states[suit_number].copy())
             choreo_by_suit[suit_number].append(new_event)
-
-    # for i in range(20):
-    #     time, state = choreo_by_suit[1][i]
-    #     print(time, state)
-    #     # if time >= (60 + 19) * 100 and time <= (60+21) * 100:
-    #     #     print(time, state)
-    #     # test that events that are supposed to be ac
-    # return
-    for time, state in choreo_by_suit[0]:
-        print(time, state)
 
     # convert into one long byte string
     bytes_strings = []
