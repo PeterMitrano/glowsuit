@@ -29,7 +29,7 @@ MainWidget::MainWidget(QWidget *parent)
     ui.visualizer_group->layout()->addWidget(visualizer);
     live_midi_worker = new LiveMidiWorker(num_channels, this);
     music_player = new QMediaPlayer(this);
-    music_player->setNotifyInterval(100);
+    music_player->setNotifyInterval(500);
 
     connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
     connect(music_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,

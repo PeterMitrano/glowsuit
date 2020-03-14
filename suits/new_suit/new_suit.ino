@@ -1,7 +1,7 @@
 #include <XBee.h>
 #include "new_suit.h"
 
-#include "suit_3.h"
+#include "suit_1.h"
 
 XBee xbee = XBee();
 XBeeResponse response = XBeeResponse();
@@ -51,11 +51,24 @@ void setup()
     }
 }
 
-uint16_t choreo_idx = 0;
-
 void loop()
 {
-    if (choreo_idx >= num_events - 1)
+    int32_t const now_ms = millis_signed() - time_offset_ms;
+    int32_t const choreo_time_cs = (now_ms - startup_delay_ms) / 10;
+
+    // Find the next upcoming event and set choreo_idx
+    uint16_t choreo_idx = num_events;
+    for (auto j = 0u; j < num_events; ++j)
+    {
+        auto const onset_cs = pgm_read_word_near(choreo + (j * 3));
+        if (onset_cs >= choreo_time_cs)
+        {
+            choreo_idx = j;
+            break;
+        }
+    }
+
+    if (choreo_idx >= num_events)
     {
         for (auto const pin : channel_to_pin)
         {
@@ -64,10 +77,7 @@ void loop()
         return;
     };
 
-    int32_t const now_ms = millis_signed() - time_offset_ms;
-    int32_t const choreo_time_cs = (now_ms - startup_delay_ms) / 10;
     auto const next_onset_cs = pgm_read_word_near(choreo + (choreo_idx * 3));
-
     if (choreo_time_cs >= next_onset_cs)
     {
         // display the current state
@@ -79,9 +89,6 @@ void loop()
             digitalWrite(pin, channel_on ? HIGH : LOW);
             ++bit_idx;
         }
-
-        // move on to next event
-        ++choreo_idx;
     }
 
 
@@ -104,6 +111,6 @@ void update_time()
     {
         xbee.getResponse().getRx16Response(rx16);
         auto const current_global_time_ms = from_bytes<int32_t>(rx16.getData(), rx16.getDataLength());
-        time_offset_ms = millis_signed() - current_global_time_ms + transmission_delay_ms;
+        time_offset_ms = millis_signed() - current_global_time_ms - transmission_delay_ms;
     }
 }

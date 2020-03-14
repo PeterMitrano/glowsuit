@@ -63,6 +63,9 @@ def main():
             new_event = (int_time_in_centiseconds, states[suit_number].copy())
             choreo_by_suit[suit_number].append(new_event)
 
+    for t, s in choreo_by_suit[0]:
+        print(t, s)
+
     # convert into one long byte string
     bytes_strings = []
     for suit_number in range(num_suits):

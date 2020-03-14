@@ -12,7 +12,7 @@ constexpr int channel_to_pin[8] = {
 };
 
 int32_t time_offset_ms = 0;
-constexpr int32_t transmission_delay_ms = 50;
+constexpr int32_t transmission_delay_ms = 0;
 constexpr int32_t startup_delay_ms = 5000l;
 
 void flashLed(unsigned int on_time);
