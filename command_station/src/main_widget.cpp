@@ -16,6 +16,13 @@ MainWidget::MainWidget(QWidget *parent)
 {
     ui.setupUi(this);
 
+    ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    ui.stop_button->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    connect(ui.play_button, &QAbstractButton::clicked, this, &MainWidget::play_pause_clicked);
+    connect(ui.stop_button, &QAbstractButton::clicked, this, &MainWidget::stop);
+    connect(ui.start_with_countdown_button, &QPushButton::clicked, this, &MainWidget::start_with_countdown);
+
+
     // these are pointers because you can't use "this" in an the constructor initializer list
     visualizer = new Visualizer(this);
     num_channels = visualizer->load_suit();
@@ -27,6 +34,15 @@ MainWidget::MainWidget(QWidget *parent)
     connect(music_player, &QMediaPlayer::mediaStatusChanged, this, &MainWidget::status_changed);
     connect(music_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,
             &MainWidget::display_error_message);
+    ui.player_slider->setRange(0, static_cast<int>(music_player->duration()));
+
+    connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
+    connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
+    connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
+    connect(this, &MainWidget::play, music_player, &QMediaPlayer::play);
+    connect(this, &MainWidget::pause, music_player, &QMediaPlayer::pause);
+    connect(this, &MainWidget::stop, music_player, &QMediaPlayer::stop);
+    connect(music_player, &QMediaPlayer::stateChanged, this, &MainWidget::set_state);
 
     connect(ui.front_button, &QPushButton::clicked, visualizer, &Visualizer::front_status_clicked);
     connect(ui.back_button, &QPushButton::clicked, visualizer, &Visualizer::back_status_clicked);
@@ -40,9 +56,7 @@ MainWidget::MainWidget(QWidget *parent)
             &LiveMidiWorker::octave_spinbox_changed);
     connect(ui.user_visualizer_checkbox, &QCheckBox::stateChanged, visualizer, &Visualizer::use_visualizer_checked);
 
-    connect(ui.num_suits_spinbox, qOverload<int>(&QSpinBox::valueChanged), this, &MainWidget::num_suits_changed);
-    connect(ui.start_button, &QPushButton::clicked, this, &MainWidget::start_clicked);
-    connect(ui.abort_button, &QPushButton::clicked, this, &MainWidget::abort_clicked);
+    set_state(music_player->state());
 
     // start a thread for receiving MIDI
     live_midi_worker->moveToThread(&live_midi_thread);
@@ -138,7 +152,6 @@ void MainWidget::save_settings()
     settings->setValue("gui/octave", ui.octave_spinbox->value());
     settings->setValue("gui/live_checkbox", ui.live_checkbox->isChecked());
     settings->setValue("gui/scale", ui.scale_spinbox->value());
-    settings->setValue("gui/num_suits", ui.num_suits_spinbox->value());
     settings->setValue("gui/controls_hidden", controls_hidden);
     settings->setValue("files/music", music_filename);
     settings->setValue("files/midi", midi_filename);
@@ -160,12 +173,7 @@ void MainWidget::restore_settings()
     ui.octave_spinbox->setValue(settings->value("gui/octave").toInt());
     ui.scale_spinbox->setValue(settings->value("gui/scale").toDouble());
     ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
-<<<<<<< HEAD
     ui.user_visualizer_checkbox->setChecked(settings->value("gui/use_visualizer").toBool());
-    ui.track_spinbox->setValue(settings->value("gui/track").toInt());
-=======
-    ui.num_suits_spinbox->setValue(settings->value("gui/num_suits").toInt());
->>>>>>> static_choreo
     controls_hidden = settings->value("gui/controls_hidden").toBool();
     ui.controls_widget->setVisible(!controls_hidden);
 
@@ -187,6 +195,92 @@ void MainWidget::restore_settings()
 QMediaPlayer::State MainWidget::state() const
 {
     return player_state;
+}
+
+void MainWidget::set_state(QMediaPlayer::State state)
+{
+    if (state != player_state)
+    {
+        player_state = state;
+
+        switch (state)
+        {
+            case QMediaPlayer::StoppedState:
+                ui.stop_button->setEnabled(false);
+                ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+                if (startup_sync_thread.joinable())
+                {
+                    startup_sync_thread.join();
+                }
+                break;
+            case QMediaPlayer::PlayingState:
+                ui.stop_button->setEnabled(true);
+                ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+                break;
+            case QMediaPlayer::PausedState:
+                ui.stop_button->setEnabled(true);
+                ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+                break;
+        }
+    }
+}
+
+void MainWidget::play_pause_clicked()
+{
+    switch (player_state)
+    {
+        case QMediaPlayer::StoppedState:
+        case QMediaPlayer::PausedState:
+            emit play();
+            break;
+        case QMediaPlayer::PlayingState:
+            emit pause();
+            break;
+    }
+}
+
+void MainWidget::seek(int milliseconds)
+{
+    music_player->setPosition(milliseconds);
+}
+
+void MainWidget::duration_changed(qint64 duration)
+{
+    this->song_duration_ms = duration;
+    ui.player_slider->setMaximum(this->song_duration_ms);
+}
+
+void MainWidget::position_changed(qint64 progress)
+{
+    if (!ui.player_slider->isSliderDown())
+        ui.player_slider->setValue(progress);
+
+    update_duration_info(progress);
+
+    sendTime(progress + start_delay_ms_);
+}
+
+void MainWidget::update_duration_info(qint64 time_ms)
+{
+    QString time_str;
+    if (time_ms || song_duration_ms)
+    {
+        QTime current_time(static_cast<int>(time_ms / 3600000) % 60,
+                           static_cast<int>(time_ms / 60000) % 60,
+                           static_cast<int>(time_ms / 1000) % 60,
+                           static_cast<int>(time_ms) % 1000);
+        QTime total_time(static_cast<int>(song_duration_ms / 3600000) % 60,
+                         static_cast<int>(song_duration_ms / 60000) % 60,
+                         static_cast<int>(song_duration_ms / 1000) % 60,
+                         static_cast<int>(song_duration_ms) % 1000);
+        QString format = "mm:ss";
+        if (song_duration_ms > 3600000)
+        {
+            format = "hh:mm:ss";
+        }
+        time_str = current_time.toString(format) + " / " + total_time.toString(format);
+    }
+    ui.player_time_label->setText(time_str);
 }
 
 
@@ -271,6 +365,7 @@ void MainWidget::blink_midi_indicator()
 
 void MainWidget::all_on_clicked()
 {
+    // FIXME: right now the suits wont respond to this
     for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx)
     {
         for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx)
@@ -315,149 +410,58 @@ void MainWidget::keyReleaseEvent(QKeyEvent *event)
 
 }
 
-void MainWidget::num_suits_changed(int value)
+void MainWidget::start_with_countdown()
 {
-    num_suits = value;
-    for (auto *checkbox : suit_status_checkboxes)
-    {
-        ui.suit_checkbox_layout->removeWidget(checkbox);
-        checkbox->deleteLater();
-    }
-    suit_status_checkboxes.clear();
-
-    for (auto i = 0; i < value; ++i)
-    {
-        auto *checkbox = new QCheckBox(this);
-        checkbox->setText(QString::number(i + 1));
-        checkbox->setEnabled(false);
-        suit_status_checkboxes.emplace_back(checkbox);
-        ui.suit_checkbox_layout->addWidget(checkbox);
-    }
-}
-
-void MainWidget::abort_clicked()
-{
-    for (auto *checkbox : suit_status_checkboxes)
-    {
-        checkbox->setChecked(true);
-    }
-
-    music_player->stop();
-    aborted = true;
-    if (sync_xbees_thread.joinable())
-    {
-        sync_xbees_thread.join();
-    }
-
-    for (auto *checkbox : suit_status_checkboxes)
-    {
-        checkbox->setChecked(false);
-    }
-}
-
-void MainWidget::start_clicked()
-{
-    // repeatedly send a message containing the current time
-    if (not xbee_serial)
-    {
-        return;
-    }
-
-    // make sure the thread isn't still running
-    if (sync_xbees_thread.joinable())
-    {
-        sync_xbees_thread.join();
-    }
+    // this right here defines the entire global song time for everyone
+    auto const start_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+    start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(start_time).count();
 
     auto func = [&]()
     {
-        // this right here defined the entire global song time for everyone
-        auto const start_time = std::chrono::high_resolution_clock::now().time_since_epoch();
-        auto const start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(start_time).count();
-
-        constexpr auto startup_delay_ms = 5000;
-
-        std::vector<uint8_t> suits_ready;
-        constexpr auto tx_status_message_size = 7u;
-        std::vector<uint8_t> tx_status_message_buffer;
-        tx_status_message_buffer.resize(tx_status_message_size);
-        constexpr auto ready_message_size = 10u;
-        std::vector<uint8_t> ready_message_buffer;
-        ready_message_buffer.resize(ready_message_size);
-        aborted = false;
-        while (!aborted)
-        {
-
-            auto const dt_ms = sendTime(start_ms);
-
-            QThread::msleep(100);
-
-            if (dt_ms > std::max(0, startup_delay_ms - 1000))
-            {
-                break;
-            }
-        }
-
-        if (aborted)
-        {
-            return;
-        }
-
-        std::cout << "Waiting to start...\n";
-
-        while (!aborted)
+        while (true)
         {
             auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
             auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
-            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
+            auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms_);
 
-            if (dt_ms >= startup_delay_ms)
+            sendTime(dt_ms);
+
+            if (dt_ms >= start_delay_ms_)
             {
                 break;
             }
+
+            QThread::msleep(10);
         }
 
         // Start the music!
         music_player->play();
 
-        unsigned long idx = 1;
-        while (!aborted)
-        {
-            auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
-            auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
-            now_ms = static_cast<uint32_t>(now_ms - start_ms - startup_delay_ms);
-            auto const next_onset_ms = idx * 1000ull;
-            if (now_ms >= next_onset_ms)
-            {
-                ++idx;
-                sendTime(start_ms);
-            }
-
-            // print any data we get back
-//            auto packet = read_packet(xbee_serial);
-//            if (packet and packet->command_id == RX_16)
+        // print any data we get back
+//        auto packet = read_packet(xbee_serial);
+//        if (packet and packet->command_id == RX_16)
+//        {
+//            for (auto const &byte : packet->data)
 //            {
-//                for (auto const &byte : packet->data)
+//                if (byte >= 32 and byte < 127)
 //                {
-//                    if (byte >= 32 and byte < 127)
-//                    {
-//                        std::cout << byte;
-//                    }
+//                    std::cout << byte;
 //                }
-//                std::cout << std::endl;
 //            }
-        }
+//            std::cout << std::endl;
+//        }
     };
 
-    sync_xbees_thread = std::thread(func);
+    startup_sync_thread = std::thread(func);
 }
 
-uint32_t MainWidget::sendTime(long const start_ms)
+void MainWidget::sendTime(qint64 song_time_ms) const
 {
-    auto const now_time = std::chrono::high_resolution_clock::now().time_since_epoch();
-    auto const now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now_time).count();
-    auto const dt_ms = static_cast<uint32_t>(now_ms - start_ms);
-    auto const time_bytes = to_bytes<uint32_t>(dt_ms);
+    if (not xbee_serial)
+    {
+        return;
+    }
+    auto const time_bytes = to_bytes<uint32_t>(song_time_ms);
 
     try
     {
@@ -467,6 +471,5 @@ uint32_t MainWidget::sendTime(long const start_ms)
     {
         std::cerr << "time message failed to send! \n";
     }
-
-    return dt_ms;
 }
+

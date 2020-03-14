@@ -42,17 +42,23 @@ public:
 
     void keyReleaseEvent(QKeyEvent *event) override;
 
+    void set_state(QMediaPlayer::State state);
+
+    void update_duration_info(qint64 currentInfo);
+
     [[nodiscard]] QMediaPlayer::State state() const;
 
     void handle_cursor(QMediaPlayer::MediaStatus status);
 
+    void start_with_countdown();
+
     void blink_midi_indicator();
 
-    uint32_t sendTime(long dt_ms);
+    void sendTime(qint64 song_time_ms) const;
 
 public slots:
 
-    void num_suits_changed(int value);
+    void play_pause_clicked();
 
     void update_serial_port_list();
 
@@ -61,6 +67,12 @@ public slots:
     void music_file_button_clicked();
 
     void xbee_port_changed(int index);
+
+    void seek(int milliseconds);
+
+    void duration_changed(qint64 duration);
+
+    void position_changed(qint64 progress);
 
     void status_changed(QMediaPlayer::MediaStatus status);
 
@@ -71,10 +83,6 @@ public slots:
     void all_on_clicked();
 
     void all_off_clicked();
-
-    void start_clicked();
-
-    void abort_clicked();
 
 signals:
 
@@ -103,16 +111,15 @@ private:
 
     QMediaPlayer::State player_state = QMediaPlayer::StoppedState;
     QMediaPlayer *music_player{nullptr};
-    std::thread sync_xbees_thread;
+    std::thread startup_sync_thread;
 
     qint64 song_duration_ms{0};
-    uint8_t num_suits{0u};
-    bool aborted{false};
     QTimer *timer{nullptr};
     int num_channels{0};
     bool controls_hidden{false};
     QLayoutItem *controls_layout_item{nullptr};
     QString previously_selected_port_name;
-    std::vector<QCheckBox *> suit_status_checkboxes;
 
+    long start_ms_{0L};
+    constexpr static long const start_delay_ms_{5000L};
 };

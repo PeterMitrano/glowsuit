@@ -73,6 +73,52 @@
         <item>
          <layout class="QVBoxLayout" name="controls_layout_1">
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QCheckBox" name="live_checkbox">
+              <property name="toolTip">
+               <string>Enables visualization of live MIDI. Disables the ability to play from a midi file</string>
+              </property>
+              <property name="text">
+               <string>Testing?</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::MinimumExpanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QLabel" name="octave_label">
@@ -113,81 +159,53 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Live Midi Indicator</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="midi_indicator_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>blinks when any kind of MIDI event is detected. If this blink and one of the lights doesn't, that probably means you've played a note that's too high or two low.</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">border: none;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../rc/command_station.qrc">
+                <normaloff>:/icons/midi-off.png</normaloff>
+                <normalon>:/icons/midi-on.png</normalon>:/icons/midi-off.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="live_midi_controls">
-            <property name="title">
-             <string>Live Midi Controls</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QCheckBox" name="live_checkbox">
-               <property name="toolTip">
-                <string>Enables visualization of live MIDI. Disables the ability to play from a midi file</string>
-               </property>
-               <property name="text">
-                <string>Live Midi?</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="midi_indicator_button">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>16</width>
-                 <height>16</height>
-                </size>
-               </property>
-               <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
-               </property>
-               <property name="toolTip">
-                <string>blinks when any kind of MIDI event is detected. If this blink and one of the lights doesn't, that probably means you've played a note that's too high or two low.</string>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">border: none;</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="../rc/command_station.qrc">
-                 <normaloff>:/icons/midi-off.png</normaloff>
-                 <normalon>:/icons/midi-on.png</normalon>:/icons/midi-off.png</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::MinimumExpanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -219,6 +237,13 @@
              </spacer>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="user_visualizer_checkbox">
+            <property name="text">
+             <string>Use Visualizer</string>
+            </property>
+           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="viz_controls_layout">
@@ -350,13 +375,6 @@ color: #000000;
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="user_visualizer_checkbox">
-            <property name="text">
-             <string>Use Visualizer</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -382,7 +400,7 @@ color: #000000;
              <string>Playback from a MIDI file and music file. If this is disable, uncheck the &quot;live MIDI&quot; box</string>
             </property>
             <property name="title">
-             <string>Midi File Controls</string>
+             <string>Performance Controls</string>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -443,67 +461,70 @@ color: #000000;
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="start_layout">
+              <widget class="QPushButton" name="start_with_countdown_button">
+               <property name="text">
+                <string>Start with Countdown</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
-                <widget class="QPushButton" name="start_button">
+                <widget class="QToolButton" name="stop_button">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="toolTip">
-                  <string>Start the choreo. Includes a 30 second delay for synchronizing</string>
+                  <string>Stops playback and resets to the start</string>
                  </property>
                  <property name="text">
-                  <string>Start!</string>
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="media-playback-stop">
+                   <normaloff>.</normaloff>.</iconset>
                  </property>
                 </widget>
                </item>
                <item>
-                <spacer name="start_spacer">
+                <widget class="QToolButton" name="play_button">
+                 <property name="focusPolicy">
+                  <enum>Qt::StrongFocus</enum>
+                 </property>
+                 <property name="toolTip">
+                  <string>You can use the space bar to play/pause when this button has focus (highlighted blue). Try clicking on it first to focus.</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="media-playback-start">
+                   <normaloff>.</normaloff>.</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="player_slider">
+                 <property name="focusPolicy">
+                  <enum>Qt::StrongFocus</enum>
+                 </property>
+                 <property name="maximum">
+                  <number>1000</number>
+                 </property>
+                 <property name="singleStep">
+                  <number>100</number>
+                 </property>
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="suit_checkbox_layout">
-               <item>
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>Suit Status</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="abort_layout">
-               <item>
-                <widget class="QPushButton" name="abort_button">
-                 <property name="toolTip">
-                  <string>cancel the sync process. Does not stop the suits, those must be reset.</string>
-                 </property>
-                 <property name="text">
-                  <string>Abort</string>
-                 </property>
                 </widget>
                </item>
                <item>
-                <spacer name="horizontalSpacer_3">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                <widget class="QLabel" name="player_time_label">
+                 <property name="text">
+                  <string>00:00/00:00</string>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
+                </widget>
                </item>
               </layout>
              </item>
@@ -621,14 +642,12 @@ color: #000000;
  <tabstops>
   <tabstop>xbee_port_combobox</tabstop>
   <tabstop>octave_spinbox</tabstop>
-  <tabstop>live_checkbox</tabstop>
   <tabstop>all_off_button</tabstop>
   <tabstop>all_on_button</tabstop>
   <tabstop>front_button</tabstop>
   <tabstop>back_button</tabstop>
   <tabstop>scale_spinbox</tabstop>
   <tabstop>select_music_file_button</tabstop>
-  <tabstop>midi_indicator_button</tabstop>
  </tabstops>
  <resources>
   <include location="../rc/command_station.qrc"/>
