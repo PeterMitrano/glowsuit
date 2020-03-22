@@ -13,6 +13,8 @@ public slots:
 
     void start();
 
+    void receive_time(uint8_t const *data, size_t size);
+
 signals:
 
     void midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);

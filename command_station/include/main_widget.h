@@ -55,7 +55,7 @@ public:
 
     void blink_midi_indicator();
 
-    void sendTime(qint64 song_time_ms) const;
+    void sendTime(qint64 song_time_ms);
 
 public slots:
 
@@ -94,6 +94,8 @@ signals:
     void stop();
 
     void gui_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
+
+    void send_time(uint8_t const *data, size_t size);
 
 public:
     Visualizer *visualizer{nullptr};

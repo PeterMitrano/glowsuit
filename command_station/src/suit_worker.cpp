@@ -25,3 +25,7 @@ void SuitWorker::start()
     }
 }
 
+void SuitWorker::receive_time(uint8_t const *data, size_t size)
+{
+
+}

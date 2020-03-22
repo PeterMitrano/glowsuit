@@ -55,6 +55,8 @@ target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia)
 
 set(command_station_src
+        ../suits/new_suit/suit_common.cpp
+        ../suits/new_suit/new_suit.ino
         src/common.cpp
         src/command_station.cpp
         src/suit_worker.cpp

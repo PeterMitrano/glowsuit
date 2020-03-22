@@ -74,6 +74,7 @@ MainWidget::MainWidget(QWidget *parent)
         connect(suit_thread, &QThread::started, suit_worker, &SuitWorker::start);
         connect(suit_worker, &SuitWorker::my_finished, suit_thread, &QThread::quit);
         connect(suit_worker, &SuitWorker::midi_event, visualizer, &Visualizer::on_midi_file_event);
+        connect(this, &MainWidget::send_time, suit_worker, &SuitWorker::receive_time);
 
         suit_workers.push_back(suit_worker);
         suit_threads.push_back(suit_thread);
@@ -483,7 +484,7 @@ void MainWidget::start_with_countdown()
     startup_sync_thread = std::thread(func);
 }
 
-void MainWidget::sendTime(qint64 song_time_ms) const
+void MainWidget::sendTime(qint64 song_time_ms)
 {
     if (not xbee_serial)
     {
@@ -495,6 +496,7 @@ void MainWidget::sendTime(qint64 song_time_ms) const
     {
         auto const[tx_packet, size] = make_packet(time_bytes);
         xbee_serial->write(tx_packet.data(), size);
+        emit send_time(tx_packet.data(), size);
     } catch (serial::SerialException &)
     {
         std::cerr << "time message failed to send! \n";
