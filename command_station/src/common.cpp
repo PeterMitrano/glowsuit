@@ -2,7 +2,7 @@
 #include <numeric>
 #include <iostream>
 
-std::pair<std::vector<uint8_t>, size_t> make_packet(State state)
+std::pair<std::vector<uint8_t>, unsigned long> make_packet(State state)
 {
     auto data = state.data;
     uint8_t const length_lb = BytesPerMessage + 5;
@@ -33,7 +33,7 @@ std::pair<std::vector<uint8_t>, size_t> make_packet(State state)
     return {packet, packet.size()};
 }
 
-std::pair<std::vector<uint8_t>, size_t> make_packet(std::vector<uint8_t> const &data)
+std::pair<std::vector<uint8_t>, unsigned long> make_packet(std::vector<uint8_t> const &data)
 {
     uint8_t const length_lb = data.size() + 5;
     constexpr uint8_t api_identifier = 0x01;
@@ -74,14 +74,13 @@ void print_packet(std::vector<uint8_t> const &packet)
 std::optional<Packet> read_packet(serial::Serial *xbee_serial)
 {
     Packet packet;
-
     std::vector<uint8_t> data;
     auto bytes_read = xbee_serial->read(data, 1);
 
     // check if a new packet is available
     if (bytes_read != 1 or data[0] != 0x7E)
     {
-        return std::optional<Packet>();
+        return {};
     }
 
     // if it is, read the length and command ID
@@ -90,7 +89,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
     if (bytes_read != 3)
     {
         // something went wrong -- abort!
-        return std::optional<Packet>();
+        return {};
     }
 
     auto const length_hb = data[1];
@@ -104,7 +103,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
     if (bytes_read != length)
     {
         // something went wrong -- abort!
-        return std::optional<Packet>();
+        return {};
     }
 
     switch (command_id)
@@ -135,3 +134,67 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
     }
 }
 
+std::optional<Packet> data_to_packet(std::vector<uint8_t> const &data)
+{
+    // check if the start byte is right
+    if (data[0] != 0x7E)
+    {
+        return {};
+    }
+
+    auto const length_hb = data[1];
+    auto const length_lb = data[2];
+    auto const length = (length_hb << 8u) + length_lb;
+
+    auto const command_id = data[3];
+    Packet packet;
+    packet.command_id = command_id;
+
+    if (length + 4 != data.size())
+    {
+        return {};
+    }
+
+    switch (command_id)
+    {
+        // this is weird, but since we're mocking XBee code sometimes, we sometimes need to parse a transmit message
+        case TX_16:
+        {
+            auto const data_length = length - 5;
+            auto const dest_address_hb = data[5];
+            auto const dest_address_lb = data[6];
+            auto const dest_address = (dest_address_hb << 8u) + dest_address_lb;
+            packet.dest_address = dest_address;
+            auto start_idx = 8u;
+            for (auto offset = 0; offset < data_length; ++offset)
+            {
+                packet.data.push_back(data[start_idx + offset]);
+            }
+            return packet;
+        }
+        case RX_16: // RX (Receive) 16 bit
+        {
+            auto const data_length = length - 5;
+            auto const source_address_hb = data[4];
+            auto const source_address_lb = data[5];
+            auto const source_address = (source_address_hb << 8u) + source_address_lb;
+            packet.source_address = source_address;
+            auto start_idx = 8u;
+            for (auto offset = 0; offset < data_length; ++offset)
+            {
+                packet.data.push_back(data[start_idx + offset]);
+            }
+            return packet;
+        }
+        case TX_STATUS:
+        {
+            return packet;
+        }
+        default:
+        {
+            std::cout << "API command " << std::hex << command_id << " not supported!\n";
+            return std::optional<Packet>();
+        }
+    }
+
+}

@@ -11,3 +11,4 @@ build-release
 env.yaml
 .idea
 *.mid
+.build*

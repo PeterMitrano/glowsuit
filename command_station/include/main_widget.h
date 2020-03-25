@@ -95,12 +95,12 @@ signals:
 
     void gui_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
-    void send_time(uint8_t const *data, size_t size);
+    void send_time(std::vector<uint8_t> const data, unsigned long size);
 
 public:
     Visualizer *visualizer{nullptr};
     LiveMidiWorker *live_midi_worker{nullptr};
-    std::vector<SuitWorker *> suit_workers;
+    std::vector<std::shared_ptr<SuitWorker>> suit_workers;
     std::vector<QThread *> suit_threads;
     QString music_filename;
     QString midi_filename;
@@ -127,4 +127,5 @@ private:
 
     long start_ms_{0L};
     constexpr static long const start_delay_ms_{5000L};
+    bool choreo_started_once{false};
 };

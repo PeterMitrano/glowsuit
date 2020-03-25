@@ -1,4 +1,5 @@
 #include <chrono>
+#include <memory>
 
 #include <QComboBox>
 #include <QFileDialog>
@@ -10,6 +11,7 @@
 
 #include <common.h>
 #include <main_widget.h>
+#include <suit_dispatcher.h>
 
 MainWidget::MainWidget(QWidget *parent)
         : QWidget(parent)
@@ -68,16 +70,18 @@ MainWidget::MainWidget(QWidget *parent)
 
     for (auto suit_idx{0u}; suit_idx < num_suits; ++suit_idx)
     {
-        auto *suit_worker = new SuitWorker(suit_idx);
+        auto suit_worker = std::make_shared<SuitWorker>(suit_idx);
         auto *suit_thread = new QThread();
         suit_worker->moveToThread(suit_thread);
-        connect(suit_thread, &QThread::started, suit_worker, &SuitWorker::start);
-        connect(suit_worker, &SuitWorker::my_finished, suit_thread, &QThread::quit);
-        connect(suit_worker, &SuitWorker::midi_event, visualizer, &Visualizer::on_midi_file_event);
-        connect(this, &MainWidget::send_time, suit_worker, &SuitWorker::receive_time);
+        connect(suit_thread, &QThread::started, suit_worker.get(), &SuitWorker::start);
+        connect(suit_worker.get(), &SuitWorker::my_finished, suit_thread, &QThread::quit);
+        connect(suit_worker.get(), &SuitWorker::midi_event, visualizer, &Visualizer::on_midi_file_event);
+        connect(this, &MainWidget::send_time, suit_worker.get(), &SuitWorker::receive_time);
 
         suit_workers.push_back(suit_worker);
         suit_threads.push_back(suit_thread);
+        SuitDispatcher::registerSuit(suit_idx, suit_worker);
+        suit_thread->start();
     }
 
     connect(this, &MainWidget::gui_midi_event, visualizer, &Visualizer::generic_on_midi_event);
@@ -101,8 +105,6 @@ MainWidget::MainWidget(QWidget *parent)
 
         ui.midi_file_group->setEnabled(false);
     }
-
-    // start fake suit programs
 }
 
 MainWidget::~MainWidget()
@@ -124,10 +126,7 @@ MainWidget::~MainWidget()
 
     // delete pointers that have no parents
     delete live_midi_worker;
-    for (auto *suit_worker : suit_workers)
-    {
-        delete suit_worker;
-    }
+    suit_workers.clear();
 }
 
 void MainWidget::music_file_button_clicked()
@@ -256,6 +255,7 @@ void MainWidget::set_state(QMediaPlayer::State state)
 
 void MainWidget::play_pause_clicked()
 {
+    choreo_started_once = true;
     switch (player_state)
     {
         case QMediaPlayer::StoppedState:
@@ -286,7 +286,10 @@ void MainWidget::position_changed(qint64 progress)
 
     update_duration_info(progress);
 
-    sendTime(progress + start_delay_ms_);
+    if (choreo_started_once)
+    {
+        sendTime(progress + start_delay_ms_);
+    }
 }
 
 void MainWidget::update_duration_info(qint64 time_ms)
@@ -441,6 +444,8 @@ void MainWidget::keyReleaseEvent(QKeyEvent *event)
 
 void MainWidget::start_with_countdown()
 {
+    choreo_started_once = true;
+
     // this right here defines the entire global song time for everyone
     auto const start_time = std::chrono::high_resolution_clock::now().time_since_epoch();
     start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(start_time).count();
@@ -486,20 +491,20 @@ void MainWidget::start_with_countdown()
 
 void MainWidget::sendTime(qint64 song_time_ms)
 {
-    if (not xbee_serial)
-    {
-        return;
-    }
     auto const time_bytes = to_bytes<uint32_t>(song_time_ms);
 
-    try
+    auto const[tx_packet, size] = make_packet(time_bytes);
+    if (xbee_serial)
     {
-        auto const[tx_packet, size] = make_packet(time_bytes);
-        xbee_serial->write(tx_packet.data(), size);
-        emit send_time(tx_packet.data(), size);
-    } catch (serial::SerialException &)
-    {
-        std::cerr << "time message failed to send! \n";
+        try
+        {
+            xbee_serial->write(tx_packet.data(), size);
+        } catch (serial::SerialException &)
+        {
+            std::cerr << "time message failed to send! \n";
+        }
     }
+
+    emit send_time(tx_packet, size);
 }
 

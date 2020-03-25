@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+8001c96b80af929fffa12fa8f5a66b67 command_station/CMakeFiles/command_station_autogen
+4d4378ceae474d4157ebc0f5da663e1c command_station/CMakeFiles/midi_autogen
+70a042831923983d8bf238e75bab20ae command_station/CMakeFiles/serial_autogen

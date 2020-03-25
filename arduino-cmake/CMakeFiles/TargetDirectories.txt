@@ -1,0 +1,10 @@
+/home/peter/projects/photonix/glowsuit/arduino-cmake/CMakeFiles/rebuild_cache.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/CMakeFiles/edit_cache.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/rebuild_cache.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/edit_cache.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/command_station.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/serial.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/midi.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/command_station_autogen.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/serial_autogen.dir
+/home/peter/projects/photonix/glowsuit/arduino-cmake/command_station/CMakeFiles/midi_autogen.dir

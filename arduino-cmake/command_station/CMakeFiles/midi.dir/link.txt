@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmidi.a  CMakeFiles/midi.dir/src/midi/Binasc.cpp.o CMakeFiles/midi.dir/src/midi/MidiEvent.cpp.o CMakeFiles/midi.dir/src/midi/MidiEventList.cpp.o CMakeFiles/midi.dir/src/midi/MidiFile.cpp.o CMakeFiles/midi.dir/src/midi/MidiMessage.cpp.o CMakeFiles/midi.dir/src/midi/RtMidi.cpp.o CMakeFiles/midi.dir/src/midi/live_midi_input.cpp.o CMakeFiles/midi.dir/midi_autogen/mocs_compilation.cpp.o
+/usr/bin/ranlib libmidi.a

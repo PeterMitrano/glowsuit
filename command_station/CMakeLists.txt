@@ -1,19 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
 project(command_station)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
-find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
-
-if(APPLE)
-    find_library(IOKIT_LIBRARY IOKit)
-    find_library(FOUNDATION_LIBRARY Foundation)
-endif()
 
 file(GLOB_RECURSE serial_src src/serial/*.cpp)
 add_library(serial STATIC ${serial_src})
@@ -55,8 +46,12 @@ target_include_directories(midi PUBLIC include)
 target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia)
 
 set(command_station_src
-        ../suits/new_suit/suit_common.cpp
-        ../suits/new_suit/new_suit.ino
+        ../arduino/suits/suit_main.cpp
+        ../arduino/suits/suit_common.cpp
+        src/Arduino.cpp
+        src/XBee.cpp
+        src/suit_dispatcher.cpp
+        src/all_suits_choreo.cpp
         src/common.cpp
         src/command_station.cpp
         src/suit_worker.cpp
@@ -69,8 +64,5 @@ set(command_station_src
 
 # win32 has no effect on osx/linux, so we can use it here without ifdefs
 add_executable(command_station WIN32 ${command_station_src})
-target_include_directories(command_station PUBLIC include)
+target_include_directories(command_station PUBLIC include include/mock_arduino ../arduino/suits/)
 target_link_libraries(command_station PUBLIC midi serial Qt5::Core Qt5::Widgets Qt5::Multimedia)
-
-add_executable(test test/test.cpp src/common.cpp)
-target_include_directories(test PUBLIC include)

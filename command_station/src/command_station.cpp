@@ -24,9 +24,10 @@ using json = nlohmann::json;
 
 using namespace std::chrono_literals;
 
-
 int main(int argc, char **argv)
 {
+    qRegisterMetaType<std::vector<uint8_t> >();
+
     QApplication app(argc, argv);
 
     QFile styleFile(":/style.qss");
