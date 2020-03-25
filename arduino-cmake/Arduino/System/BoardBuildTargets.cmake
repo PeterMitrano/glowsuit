@@ -716,7 +716,6 @@ function(_add_internal_arduino_library target lib)
 	endif()
 
 	add_library("${target}" STATIC ${lib_headers} ${lib_sources})
-	 message(">>>>> ${include_dirs}")
 	target_include_directories(${target} PUBLIC ${include_dirs})
 
 	# Add the prebuild and postbuild command hooks for the library

@@ -28,14 +28,14 @@ uint8_t SuitDispatcher::pgm_read_byte_near(uint8_t const *address)
 {
     auto const suit_idx = suit_thread_storage.localData();
     auto const suit_worker = suit_map.at(suit_idx);
-    suit_worker->pgm_read_byte_near(address);
+    return suit_worker->pgm_read_byte_near(address);
 }
 
 uint16_t SuitDispatcher::pgm_read_word_near(uint8_t const *address)
 {
     auto const suit_idx = suit_thread_storage.localData();
     auto const suit_worker = suit_map.at(suit_idx);
-    suit_worker->pgm_read_word_near(address);
+    return suit_worker->pgm_read_word_near(address);
 }
 
 DataAndLength SuitDispatcher::readPacket(bool blocking)

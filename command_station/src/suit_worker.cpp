@@ -3,15 +3,12 @@
 #include <QAbstractEventDispatcher>
 #include <QThread>
 
-#include <include/mock_arduino/Arduino.h>
-#include <include/common.h>
+#include <scoped_suit_main.h>
+#include <all_suits_choreo.h>
+#include <common.h>
 #include <suit_common.h>
 #include <suit_dispatcher.h>
 #include <suit_worker.h>
-#include <all_suits_choreo.h>
-
-// It doesn't matter which one we include here
-#include <suit_1.h>
 
 SuitWorker::SuitWorker(unsigned int suit_idx, QObject *parent)
         : QObject(parent), suit_idx(suit_idx)
@@ -22,12 +19,17 @@ void SuitWorker::start()
 {
     SuitDispatcher::suit_thread_storage.setLocalData(suit_idx);
 
+    num_events = all_num_events[suit_idx];
+    choreo = all_choreo[suit_idx];
+
     //TODO: support rebooting
     auto done{false};
     while (not done)
     {
         start_time = std::chrono::high_resolution_clock::now();
-        setup();
+        int32_t time_offset_ms{0};
+        XBee xbee;
+        setupScoped(xbee, time_offset_ms, suit_idx);
 
         while (true)
         {
@@ -43,7 +45,7 @@ void SuitWorker::start()
                 break;
             }
 
-            loop();
+            loopScoped(xbee, time_offset_ms, num_events, choreo.data());
         }
     }
 }
@@ -129,12 +131,13 @@ unsigned long SuitWorker::millis()
 
 uint8_t SuitWorker::pgm_read_byte_near(uint8_t const *address)
 {
-    std::cout << address << " " << choreo[0] << '\n';
-    return all_choreo[suit_idx][0];
+    return *address;
 }
 
 uint16_t SuitWorker::pgm_read_word_near(uint8_t const *address)
 {
-    std::cout << address << " " << choreo[0] << '\n';
-    return all_choreo[suit_idx][0];
+    auto const lb = *address;
+    auto const hb = *(address + 1);
+    auto const word = static_cast<uint16_t>((hb << 8u) + lb);
+    return word;
 }

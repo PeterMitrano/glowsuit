@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define PROGMEM
 constexpr auto HIGH{true};
 constexpr auto LOW{false};
 constexpr auto OUTPUT{0u};

@@ -1,14 +1,10 @@
-#include <include/mock_arduino/XBee.h>
-#include <include/suit_dispatcher.h>
+#include <XBee.h>
+#include <suit_dispatcher.h>
 
 Rx16Response::Rx16Response(DataAndLength const &data_and_length)
 {
     // parse the packet
     auto packet = data_to_packet(data_and_length.data);
-    if (not packet)
-    {
-        throw std::runtime_error("invalid packet received in mock XBee code!");
-    }
     latest_payload = packet->data;
 }
 

@@ -136,6 +136,10 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
 
 std::optional<Packet> data_to_packet(std::vector<uint8_t> const &data)
 {
+    if (data.empty())
+    {
+        return {};
+    }
     // check if the start byte is right
     if (data[0] != 0x7E)
     {

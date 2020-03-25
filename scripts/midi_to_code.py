@@ -80,6 +80,8 @@ def main():
 
     out_filename = args.arduino_outdir / "suit_choreo.h".format(suit_number + 1)
     with open(out_filename, 'w') as f:
+        f.write("#include <stdint.h>\n")
+        f.write("#include <avr/pgmspace.h>\n")
         f.write("extern uint8_t const suit_number;\n")
         f.write("extern uint16_t const num_events;\n")
         f.write("extern uint8_t const choreo[] PROGMEM;\n")
@@ -87,6 +89,7 @@ def main():
     for suit_number, (num_events, byte_str) in enumerate(zip(nums_events, bytes_strings)):
         out_filename = args.arduino_outdir / "suit_{}.cpp".format(suit_number + 1)
         with open(out_filename, 'w') as f:
+            f.write("#include <suit_choreo.h>\n")
             f.write("uint8_t const suit_number = {};\n".format(suit_number + 1))
             f.write("uint16_t const num_events = {};\n".format(num_events))
             c_str = ", ".join(["0x{:02X}".format(x) for x in list(byte_str)])
@@ -114,6 +117,10 @@ def main():
             f.write("{{ {} }},\n".format(c_str))
         f.write("};\n")
 
+        f.write("#include <suit_choreo.h>\n")
+        f.write("uint8_t const suit_number = {};\n".format(0))
+        f.write("uint16_t const num_events = {};\n".format(0))
+        f.write("uint8_t const choreo[] = {{ }};\n")
 
 
 if __name__ == '__main__':

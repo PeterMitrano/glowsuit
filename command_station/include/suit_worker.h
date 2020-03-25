@@ -42,5 +42,7 @@ private:
     std::mutex new_data_mutex;
     bool new_data{false};
     std::chrono::high_resolution_clock::time_point start_time;
+    uint8_t num_events;
+    std::vector<uint8_t> choreo;
 };
 
