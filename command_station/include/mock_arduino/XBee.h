@@ -28,13 +28,14 @@ class XBeeResponse
 public:
     XBeeResponse() = default;
 
-    explicit XBeeResponse(DataAndLength const & data_and_length);
+    explicit XBeeResponse(DataAndLength const &data_and_length);
 
     [[nodiscard]] bool isAvailable() const;
 
     [[nodiscard]] int getApiId() const;
 
-    void getRx16Response(Rx16Response &) const;
+    // Calling this will clear the latest response
+    void getRx16Response(Rx16Response &);
 
 private:
     Rx16Response latest_response;

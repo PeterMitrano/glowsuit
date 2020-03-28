@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,6 +24,11 @@ void pinMode(int, int);
 struct MockSerial
 {
     void begin(int);
+    void println(int x);
+    void println(float x);
+    void println(double x);
+    void println(std::string const& s);
+    void printf(const char* fmt, ...);
 };
 
 extern MockSerial Serial;

@@ -64,6 +64,10 @@ def main():
             new_event = (int_time_in_centiseconds, states[suit_number].copy())
             choreo_by_suit[suit_number].append(new_event)
 
+    for time, state in choreo_by_suit[0]:
+        print(time, state)
+    return
+
     # Write header files for the individual suits
     # convert into one long byte string
     bytes_strings = []
@@ -116,11 +120,6 @@ def main():
             c_str = ", ".join(["0x{:02X}".format(x) for x in list(byte_str)])
             f.write("{{ {} }},\n".format(c_str))
         f.write("};\n")
-
-        f.write("#include <suit_choreo.h>\n")
-        f.write("uint8_t const suit_number = {};\n".format(0))
-        f.write("uint16_t const num_events = {};\n".format(0))
-        f.write("uint8_t const choreo[] = {{ }};\n")
 
 
 if __name__ == '__main__':

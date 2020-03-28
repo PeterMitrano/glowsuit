@@ -28,9 +28,12 @@ int XBeeResponse::getApiId() const
     return RX_16_RESPONSE;
 }
 
-void XBeeResponse::getRx16Response(Rx16Response &response) const
+void XBeeResponse::getRx16Response(Rx16Response &response)
 {
-    response = latest_response;
+    // copy
+    response = {latest_response};
+    // now invalidate/delete latest response
+    latest_response = Rx16Response{};
 }
 
 XBeeResponse::XBeeResponse(DataAndLength const &data_and_length) : latest_response(data_and_length)

@@ -3,7 +3,7 @@
 #include <QAbstractEventDispatcher>
 #include <QThread>
 
-#include <scoped_suit_main.h>
+#include <suit_program.h>
 #include <all_suits_choreo.h>
 #include <common.h>
 #include <suit_common.h>
@@ -22,14 +22,14 @@ void SuitWorker::start()
     num_events = all_num_events[suit_idx];
     choreo = all_choreo[suit_idx];
 
+    SuitProgram suit_program(choreo.data(), choreo.size());
+
     //TODO: support rebooting
     auto done{false};
     while (not done)
     {
         start_time = std::chrono::high_resolution_clock::now();
-        int32_t time_offset_ms{0};
-        XBee xbee;
-        setupScoped(xbee, time_offset_ms, suit_idx);
+        suit_program.setup();
 
         while (true)
         {
@@ -45,7 +45,7 @@ void SuitWorker::start()
                 break;
             }
 
-            loopScoped(xbee, time_offset_ms, num_events, choreo.data());
+            suit_program.loop();
         }
     }
 }
@@ -113,7 +113,11 @@ DataAndLength SuitWorker::readPacket(bool const blocking)
 
         if (new_data)
         {
-            return latest_data;
+            new_data = false;
+            // copy the latest data, and reset it
+            auto latest_data_copy{latest_data};
+            latest_data = {};
+            return latest_data_copy;
         } else
         {
             return {};
