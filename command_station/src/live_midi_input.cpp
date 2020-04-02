@@ -3,7 +3,7 @@
 #include <QString>
 #include <QThread>
 
-#include <midi/live_midi_input.h>
+#include <live_midi_input.h>
 #include <sstream>
 #include <common.h>
 
@@ -109,8 +109,8 @@ void LiveMidiWorker::start_midi()
         // transmit to suits
         if (xbee_serial != nullptr)
         {
-            auto const[packet, size] = make_packet(current_state);
-            xbee_serial->write(packet.data(), size);
+            auto const packet = make_packet(current_state);
+            xbee_serial->write(packet.data(), packet.size());
         }
     }
 }

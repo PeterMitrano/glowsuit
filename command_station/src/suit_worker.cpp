@@ -50,11 +50,11 @@ void SuitWorker::start()
     }
 }
 
-void SuitWorker::receive_time(std::vector<uint8_t> const &data, unsigned long const size)
+void SuitWorker::xbee_read(Data const packet)
 {
-    std::scoped_lock lock{new_data_mutex};
-    latest_data = {data, size};
-    new_data = true;
+    std::scoped_lock lock{new_packet_mutex};
+    latest_packet = packet;
+    new_packet = true;
 }
 
 void SuitWorker::digitalWrite(unsigned long pin, bool on)
@@ -85,7 +85,7 @@ void SuitWorker::digitalWrite(unsigned long pin, bool on)
     }
 }
 
-DataAndLength SuitWorker::readPacket(bool const blocking)
+Data SuitWorker::readPacket(bool const blocking)
 {
     if (blocking)
     {
@@ -97,27 +97,27 @@ DataAndLength SuitWorker::readPacket(bool const blocking)
             thread()->eventDispatcher()->processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
 
             {
-                std::scoped_lock lock{new_data_mutex};
-                if (new_data)
+                std::scoped_lock lock{new_packet_mutex};
+                if (new_packet)
                 {
-                    new_data = false;
+                    new_packet = false;
                     // copy the latest data, and reset it
-                    auto latest_data_copy{latest_data};
-                    latest_data = {};
-                    return latest_data_copy;
+                    auto latest_packet_copy{latest_packet};
+                    latest_packet = {};
+                    return latest_packet_copy;
                 }
             }
         }
     } else
     {
 
-        if (new_data)
+        if (new_packet)
         {
-            new_data = false;
+            new_packet = false;
             // copy the latest data, and reset it
-            auto latest_data_copy{latest_data};
-            latest_data = {};
-            return latest_data_copy;
+            auto latest_packet_copy{latest_packet};
+            latest_packet = {};
+            return latest_packet_copy;
         } else
         {
             return {};

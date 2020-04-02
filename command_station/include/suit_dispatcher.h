@@ -20,7 +20,7 @@ public:
 
     static uint16_t pgm_read_word_near(uint8_t const *);
 
-    static DataAndLength readPacket(bool blocking = false);
+    static Data readPacket(bool blocking = false);
 
     static unsigned long millis();
 

@@ -16,22 +16,13 @@ endif ()
 
 file(GLOB midi_src src/midi/*.cpp)
 if (WIN32)
-    list(APPEND midi_src
-            src/midi/live_midi_input.cpp
-            include/midi/live_midi_input.h)
     add_library(midi STATIC ${midi_src})
     target_compile_definitions(midi PUBLIC __WINDOWS_MM__)
 elseif (UNIX AND NOT APPLE)
-    list(APPEND midi_src
-            src/midi/live_midi_input.cpp
-            include/midi/live_midi_input.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC pthread asound)
     target_compile_definitions(midi PUBLIC __LINUX_ALSA__)
 elseif (APPLE)
-    list(APPEND midi_src
-            src/midi/live_midi_input.cpp
-            include/midi/live_midi_input.h)
     add_library(midi STATIC ${midi_src})
     target_link_libraries(midi PUBLIC
             "-framework CoreServices"
@@ -51,12 +42,14 @@ set(command_station_src
         src/Arduino.cpp
         src/XBee.cpp
         src/suit_dispatcher.cpp
+        src/live_midi_input.cpp
         src/all_suits_choreo.cpp
         src/common.cpp
         src/command_station.cpp
         src/suit_worker.cpp
         src/visualizer.cpp
         src/main_widget.cpp
+        include/live_midi_input.h
         include/main_widget.h
         include/visualizer.h
         include/suit_worker.h

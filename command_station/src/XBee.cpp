@@ -1,10 +1,10 @@
 #include <XBee.h>
 #include <suit_dispatcher.h>
 
-Rx16Response::Rx16Response(DataAndLength const &data_and_length)
+Rx16Response::Rx16Response(Data const &data_and_length)
 {
     // parse the packet
-    auto packet = data_to_packet(data_and_length.data);
+    auto packet = data_to_packet(data_and_length);
     latest_payload = packet->data;
 }
 
@@ -13,7 +13,7 @@ uint8_t const *Rx16Response::getData() const
     return latest_payload.data();
 }
 
-uint8_t Rx16Response::getDataLength() const
+uint16_t Rx16Response::getDataLength() const
 {
     return latest_payload.size();
 }
@@ -36,7 +36,7 @@ void XBeeResponse::getRx16Response(Rx16Response &response)
     latest_response = Rx16Response{};
 }
 
-XBeeResponse::XBeeResponse(DataAndLength const &data_and_length) : latest_response(data_and_length)
+XBeeResponse::XBeeResponse(Data const &data_and_length) : latest_response(data_and_length)
 {}
 
 void XBee::setSerial(MockSerial) const

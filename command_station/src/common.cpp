@@ -1,39 +1,23 @@
 #include <common.h>
-#include <numeric>
+#include <iomanip>
 #include <iostream>
+#include <numeric>
 
-std::pair<std::vector<uint8_t>, unsigned long> make_packet(State state)
+Data make_packet(State state)
 {
-    auto data = state.data;
-    uint8_t const length_lb = BytesPerMessage + 5;
-    constexpr uint8_t api_identifier = 0x01;
-    constexpr uint8_t frame_id = 0x01; // TODO: should we bother setting this?
-    constexpr uint8_t address_lb = 0x01;
-    constexpr uint8_t option = 0x00;
-
-    // EXAMPLE: transmit channel 1 suit 1: 7E 00 0B 00 01 00 01 00 00 00 00 00 00 00 FC
-    std::vector<uint8_t> packet{0x7E};
-    packet.push_back(0x00);
-    packet.push_back(length_lb);
-    packet.push_back(api_identifier);
-    packet.push_back(frame_id);
-    packet.push_back(0x00);
-    packet.push_back(address_lb);
-    packet.push_back(option);
-    for (auto const data_byte : data)
-    {
-        packet.push_back(data_byte);
-    }
-    // To calculate the checksum of an API frame:
-    //   Add all bytes of the packet, except the start delimiter 0x7E and the length (the second and third bytes).
-    //   Keep only the lowest 8 bits from the result. Subtract this quantity from 0xFF.
-    constexpr auto mask = 0xFF;
-    auto const checksum = 0xFF - (std::accumulate(packet.begin() + 3, packet.end(), 0u) & mask);
-    packet.push_back(static_cast<uint8_t>(checksum));
-    return {packet, packet.size()};
+    std::vector<uint8_t> data_vec(state.data.begin(), state.data.end());
+    return make_packet(data_vec);
 }
 
-std::pair<std::vector<uint8_t>, unsigned long> make_packet(std::vector<uint8_t> const &data)
+Data make_packet(SuitCommand const &command)
+{
+    std::vector<uint8_t> data_vec;
+    data_vec.push_back(static_cast<uint8_t >(command.type));
+    std::copy(command.data.cbegin(), command.data.cend(), std::back_inserter(data_vec));
+    return make_packet(data_vec);
+}
+
+Data make_packet(std::vector<uint8_t> const &data)
 {
     uint8_t const length_lb = data.size() + 5;
     constexpr uint8_t api_identifier = 0x01;
@@ -41,7 +25,7 @@ std::pair<std::vector<uint8_t>, unsigned long> make_packet(std::vector<uint8_t> 
     constexpr uint8_t address_lb = 0x01; // TODO: does this matter either?
     constexpr uint8_t option = 0x00;
 
-    std::vector<uint8_t> packet{0x7E};
+    Data packet{0x7E};
     packet.push_back(0x00); // length high bytes
     packet.push_back(length_lb);
     packet.push_back(api_identifier);
@@ -59,7 +43,7 @@ std::pair<std::vector<uint8_t>, unsigned long> make_packet(std::vector<uint8_t> 
     constexpr auto mask = 0xFF;
     auto const checksum = 0xFF - (std::accumulate(packet.begin() + 3, packet.end(), 0u) & mask);
     packet.push_back(static_cast<uint8_t>(checksum));
-    return {packet, packet.size()};
+    return packet;
 }
 
 void print_packet(std::vector<uint8_t> const &packet)
@@ -134,7 +118,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
     }
 }
 
-std::optional<Packet> data_to_packet(std::vector<uint8_t> const &data)
+std::optional<Packet> data_to_packet(Data const &data)
 {
     if (data.empty())
     {
@@ -201,4 +185,70 @@ std::optional<Packet> data_to_packet(std::vector<uint8_t> const &data)
         }
     }
 
+}
+
+Data suit_command_to_data(SuitCommand const command)
+{
+    Data data{};
+
+    auto const command_type = static_cast<uint8_t>(command.type);
+    data.push_back(command_type);
+    for (auto i{0u}; i < command.size(); ++i)
+    {
+        data.push_back(command.data[i]);
+    }
+    return data;
+}
+
+std::ostream &operator<<(std::ostream &os, const SuitCommand &command)
+{
+    os << "[";
+    switch (command.type)
+    {
+        case CommandType::Time:
+            os << "TIME   ";
+            break;
+        case CommandType::Pause:
+            os << "PAUSE  ";
+            break;
+        case CommandType::Resume:
+            os << "RESUME ";
+            break;
+        case CommandType::State:
+            os << "STATE  ";
+            break;
+        case CommandType::End:
+            break;
+    }
+    std::ios::fmtflags old_settings = std::cout.flags();
+    for (auto i{0u}; i < command.size(); ++i)
+    {
+        os << std::hex
+           << std::showbase // show the 0x prefix
+           << std::internal // fill between the prefix and the number
+           << std::setfill('0') // fill with 0s
+           << static_cast<int>(command.data[i])
+           << " ";
+    }
+    os << "]";
+    std::cout.flags(old_settings);
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const Data &data)
+{
+    os << "[";
+    std::ios::fmtflags old_settings = std::cout.flags();
+    for (auto i{0u}; i < data.size(); ++i)
+    {
+        os << std::hex
+           << std::showbase // show the 0x prefix
+           << std::internal // fill between the prefix and the number
+           << std::setfill('0') // fill with 0s
+           << static_cast<int>(data[i])
+           << " ";
+    }
+    os << "]";
+    std::cout.flags(old_settings);
+    return os;
 }

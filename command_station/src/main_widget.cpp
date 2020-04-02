@@ -76,7 +76,7 @@ MainWidget::MainWidget(QWidget *parent)
         connect(suit_thread, &QThread::started, suit_worker.get(), &SuitWorker::start);
         connect(suit_worker.get(), &SuitWorker::my_finished, suit_thread, &QThread::quit);
         connect(suit_worker.get(), &SuitWorker::midi_event, visualizer, &Visualizer::on_midi_file_event);
-        connect(this, &MainWidget::send_time, suit_worker.get(), &SuitWorker::receive_time);
+        connect(this, &MainWidget::software_suits_xbee_write, suit_worker.get(), &SuitWorker::xbee_read);
 
         suit_workers.push_back(suit_worker);
         suit_threads.push_back(suit_thread);
@@ -236,6 +236,7 @@ void MainWidget::set_state(QMediaPlayer::State state)
             case QMediaPlayer::StoppedState:
                 ui.stop_button->setEnabled(false);
                 ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+                // cancel countdown
                 if (startup_sync_thread.joinable())
                 {
                     startup_sync_thread.join();
@@ -244,10 +245,12 @@ void MainWidget::set_state(QMediaPlayer::State state)
             case QMediaPlayer::PlayingState:
                 ui.stop_button->setEnabled(true);
                 ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+                // send a play message?
                 break;
             case QMediaPlayer::PausedState:
                 ui.stop_button->setEnabled(true);
                 ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+                // send a pause message?
                 break;
         }
     }
@@ -314,7 +317,6 @@ void MainWidget::update_duration_info(qint64 time_ms)
     }
     ui.player_time_label->setText(time_str);
 }
-
 
 void MainWidget::status_changed(QMediaPlayer::MediaStatus status)
 {
@@ -397,38 +399,11 @@ void MainWidget::blink_midi_indicator()
 
 void MainWidget::all_on_clicked()
 {
-    // FIXME: right now the suits wont respond to this
-    for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx)
-    {
-        for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx)
-        {
-            emit gui_midi_event(suit_idx, midi_note_on, channel_idx);
-        }
-    }
-    State all_on_data;
-    all_on_data.data.fill(0xFF);
-    auto const[packet, size] = make_packet(all_on_data);
-    if (xbee_serial)
-    {
-        xbee_serial->write(packet.data(), size);
-    }
+    // TODO: implement this
 }
 
 void MainWidget::all_off_clicked()
 {
-    for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx)
-    {
-        for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx)
-        {
-            emit gui_midi_event(suit_idx, midi_note_off, channel_idx);
-        }
-    }
-    State all_off_data; // default constructor fills to zero
-    auto const[packet, size] = make_packet(all_off_data);
-    if (xbee_serial)
-    {
-        xbee_serial->write(packet.data(), size);
-    }
 }
 
 void MainWidget::keyReleaseEvent(QKeyEvent *event)
@@ -492,19 +467,22 @@ void MainWidget::start_with_countdown()
 void MainWidget::sendTime(qint64 song_time_ms)
 {
     auto const time_bytes = to_bytes<uint32_t>(song_time_ms);
+    SuitCommand const update_time_command{CommandType::Time, time_bytes};
 
-    auto const[tx_packet, size] = make_packet(time_bytes);
+    // FIXME: have a make_packet that takes a suit command?
+    auto const tx_packet = make_packet(update_time_command);
     if (xbee_serial)
     {
         try
         {
-            xbee_serial->write(tx_packet.data(), size);
+            xbee_serial->write(tx_packet.data(), tx_packet.size());
         } catch (serial::SerialException &)
         {
             std::cerr << "time message failed to send! \n";
         }
     }
 
-    emit send_time(tx_packet, size);
+    // we want to send a proper xbee packet here, just like we'd send to the real suits
+    emit software_suits_xbee_write(tx_packet);
 }
 

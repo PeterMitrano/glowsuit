@@ -17,10 +17,11 @@
 
 #include <../src/ui_mainwidget.h>
 
-#include <midi/live_midi_input.h>
+#include <live_midi_input.h>
 #include <serial/serial.h>
 #include <visualizer.h>
 #include <suit_worker.h>
+#include <suit_common.h>
 
 std::optional<json> load_suit_description();
 
@@ -95,7 +96,7 @@ signals:
 
     void gui_midi_event(unsigned int suit_number, unsigned int command, unsigned int channel_number);
 
-    void send_time(std::vector<uint8_t> const data, unsigned long size);
+    void software_suits_xbee_write(Data command);
 
 public:
     Visualizer *visualizer{nullptr};

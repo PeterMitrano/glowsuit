@@ -1,11 +1,11 @@
+#pragma once
+
 #include <Arduino.h>
 #include <XBee.h>
 
 #include "suit_common.h"
 
 int32_t millis_signed();
-
-void flashLed(unsigned int on_time);
 
 class SuitProgram
 {
@@ -16,7 +16,9 @@ public:
 
     void loop();
 
-    void update_time();
+    void handle_packets();
+
+    void update_time(SuitCommand const &cmd);
 
 private:
     XBee xbee;

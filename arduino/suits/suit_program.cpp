@@ -9,15 +9,6 @@ int32_t millis_signed()
     return static_cast<int32_t>(millis());
 }
 
-void flashLed(unsigned int on_time)
-{
-    // just for debugging
-    digitalWrite(led_pin, HIGH);
-    delay(on_time);
-    digitalWrite(led_pin, LOW);
-    delay(200);
-}
-
 
 SuitProgram::SuitProgram(uint8_t const *choreo, uint16_t const num_events) : choreo(choreo), num_events(num_events)
 {
@@ -46,9 +37,19 @@ void SuitProgram::setup()
     }
 
     xbee.setSerial(Serial);
-    xbee.readPacketUntilAvailable();
 
-    update_time();
+    while (true)
+    {
+        xbee.readPacketUntilAvailable();
+        Rx16Response response;
+        xbee.getResponse().getRx16Response(response);
+        auto const suit_command = response_to_suit_command(response.getData(), response.getDataLength());
+        if (suit_command.type == CommandType::Time)
+        {
+            update_time(suit_command);
+            break;
+        }
+    }
 
     for (auto const pin : channel_to_pin)
     {
@@ -103,13 +104,12 @@ void SuitProgram::loop()
         }
     }
 
-
-    xbee.readPacket();
-    update_time();
+    handle_packets();
 }
 
-void SuitProgram::update_time()
+void SuitProgram::handle_packets()
 {
+    xbee.readPacket();
     auto response = xbee.getResponse();
     auto const available = response.isAvailable();
     auto const api_id = response.getApiId();
@@ -117,8 +117,29 @@ void SuitProgram::update_time()
     {
         Rx16Response rx16;
         response.getRx16Response(rx16);
-        auto const current_global_time_ms = from_bytes<int32_t>(rx16.getData(), rx16.getDataLength());
-        auto const now = millis_signed();
-        time_offset_ms = now - current_global_time_ms - transmission_delay_ms;
+
+        auto const suit_command = response_to_suit_command(rx16.getData(), rx16.getDataLength());
+        update_time(suit_command);
+        switch (suit_command.type)
+        {
+            case CommandType::Time:
+                update_time(suit_command);
+                break;
+            case CommandType::Pause:
+                break;
+            case CommandType::Resume:
+                break;
+            case CommandType::State:
+                break;
+            default:
+                break;
+        }
     }
+}
+
+void SuitProgram::update_time(SuitCommand const &cmd)
+{
+    auto const current_global_time_ms = from_bytes<int32_t>(cmd.data);
+    auto const now = millis_signed();
+    time_offset_ms = now - current_global_time_ms - transmission_delay_ms;
 }

@@ -13,11 +13,11 @@ class Rx16Response
 public:
     Rx16Response() = default;
 
-    explicit Rx16Response(DataAndLength const &data_and_length);
+    explicit Rx16Response(Data const &data_and_length);
 
     [[nodiscard]] uint8_t const *getData() const;
 
-    [[nodiscard]] uint8_t getDataLength() const;
+    [[nodiscard]] uint16_t getDataLength() const;
 
 private:
     std::vector<uint8_t> latest_payload;
@@ -28,7 +28,7 @@ class XBeeResponse
 public:
     XBeeResponse() = default;
 
-    explicit XBeeResponse(DataAndLength const &data_and_length);
+    explicit XBeeResponse(Data const &data_and_length);
 
     [[nodiscard]] bool isAvailable() const;
 

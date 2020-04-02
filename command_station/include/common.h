@@ -12,20 +12,21 @@
 
 #include <byteset.h>
 #include <serial/serial.h>
+#include <suit_common.h>
 
 constexpr int BytesPerMessage = 6;
 
 using State = Byteset<BytesPerMessage>;
-struct DataAndLength
-{
-    std::vector<uint8_t> data;
-    unsigned long length;
-};
+using Data = std::vector<uint8_t>;
 
-// FIXME: refactor xbee out into separate library?
-std::pair<std::vector<uint8_t>, unsigned long> make_packet(State state);
+Data suit_command_to_data(SuitCommand const command);
 
-std::pair<std::vector<uint8_t>, unsigned long> make_packet(std::vector<uint8_t> const &data);
+// FIXME: refactor the software-suit-xbee stuff out into separate library?
+Data make_packet(State state);
+
+Data make_packet(SuitCommand const &command);
+
+Data make_packet(std::vector<uint8_t> const &data);
 
 constexpr uint8_t TX_16{0x01};
 constexpr uint8_t RX_16{0x81};
@@ -45,7 +46,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial);
 
 void print_packet(std::vector<uint8_t> const &packet);
 
-constexpr std::size_t num_suits = 5;
+constexpr std::size_t num_suits = 1;
 constexpr int midi_note_offset = 60;
 constexpr int baud_rate = 57600;
 
@@ -64,5 +65,10 @@ std::vector<uint8_t> to_bytes(T t)
     std::reverse(bytes.begin(), bytes.end());
     return bytes;
 }
-Q_DECLARE_METATYPE(std::vector<uint8_t>)
 
+Q_DECLARE_METATYPE(Data)
+
+
+std::ostream &operator<<(std::ostream &os, const SuitCommand &command);
+
+std::ostream &operator<<(std::ostream &os, const Data &data);

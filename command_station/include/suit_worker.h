@@ -14,7 +14,7 @@ public:
 
     void digitalWrite(unsigned long pin, bool on);
 
-    DataAndLength readPacket(bool blocking);
+    Data readPacket(bool blocking);
 
     unsigned long millis();
 
@@ -26,7 +26,7 @@ public slots:
 
     void start();
 
-    void receive_time(std::vector<uint8_t> const &data, unsigned long size);
+    void xbee_read(Data packet);
 
 signals:
 
@@ -38,9 +38,9 @@ public:
 
 private:
     unsigned int suit_idx;
-    DataAndLength latest_data;
-    std::mutex new_data_mutex;
-    bool new_data{false};
+    Data latest_packet;
+    std::mutex new_packet_mutex;
+    bool new_packet{false};
     std::chrono::high_resolution_clock::time_point start_time;
     uint8_t num_events;
     std::vector<uint8_t> choreo;

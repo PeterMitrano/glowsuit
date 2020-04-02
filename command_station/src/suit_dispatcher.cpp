@@ -38,7 +38,7 @@ uint16_t SuitDispatcher::pgm_read_word_near(uint8_t const *address)
     return suit_worker->pgm_read_word_near(address);
 }
 
-DataAndLength SuitDispatcher::readPacket(bool blocking)
+Data SuitDispatcher::readPacket(bool blocking)
 {
     auto const suit_idx = suit_thread_storage.localData();
     auto const suit_worker = suit_map.at(suit_idx);
