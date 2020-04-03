@@ -31,10 +31,19 @@ enum class CommandType : uint8_t
 
 struct SuitCommand
 {
-    CommandType type;
+    CommandType type = CommandType::End;
     std::vector<uint8_t> data;
 
     size_t size() const;
+
+    explicit SuitCommand(CommandType type, std::vector<uint8_t> data) : type(type), data(data)
+    {}
+
+    explicit SuitCommand(CommandType type) : type(type)
+    {}
+
+    explicit SuitCommand()
+    {}
 };
 
 Q_DECLARE_METATYPE(SuitCommand);

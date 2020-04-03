@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include <common.h>
+#include <deque>
 
 class SuitWorker : public QObject
 {
@@ -38,9 +39,8 @@ public:
 
 private:
     unsigned int suit_idx;
-    Data latest_packet;
     std::mutex new_packet_mutex;
-    bool new_packet{false};
+    std::deque<Data> packet_queue;
     std::chrono::high_resolution_clock::time_point start_time;
     uint8_t num_events;
     std::vector<uint8_t> choreo;

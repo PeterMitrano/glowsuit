@@ -39,6 +39,7 @@ MainWidget::MainWidget(QWidget *parent)
     ui.player_slider->setRange(0, static_cast<int>(music_player->duration()));
 
     connect(ui.player_slider, &QSlider::sliderMoved, this, &MainWidget::seek);
+    connect(ui.player_slider, &QSlider::valueChanged, this, &MainWidget::position_changed);
     connect(music_player, &QMediaPlayer::durationChanged, this, &MainWidget::duration_changed);
     connect(music_player, &QMediaPlayer::positionChanged, this, &MainWidget::position_changed);
     connect(this, &MainWidget::play, music_player, &QMediaPlayer::play);
@@ -203,7 +204,7 @@ void MainWidget::restore_settings()
     ui.live_checkbox->setChecked(settings->value("gui/live_checkbox").toBool());
     ui.user_visualizer_checkbox->setChecked(settings->value("gui/use_visualizer").toBool());
     controls_hidden = settings->value("gui/controls_hidden").toBool();
-    ui.controls_widget->setVisible(!controls_hidden);
+    ui.controls_groupbox->setVisible(!controls_hidden);
 
     emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
@@ -245,12 +246,12 @@ void MainWidget::set_state(QMediaPlayer::State state)
             case QMediaPlayer::PlayingState:
                 ui.stop_button->setEnabled(true);
                 ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-                // send a play message?
+                emit software_suits_xbee_write(make_packet(SuitCommand{CommandType::Resume}));
                 break;
             case QMediaPlayer::PausedState:
                 ui.stop_button->setEnabled(true);
                 ui.play_button->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-                // send a pause message?
+                emit software_suits_xbee_write(make_packet(SuitCommand{CommandType::Pause}));
                 break;
         }
     }
@@ -412,7 +413,7 @@ void MainWidget::keyReleaseEvent(QKeyEvent *event)
     if (key == Qt::Key_H)
     {
         controls_hidden = !controls_hidden;
-        ui.controls_widget->setVisible(!controls_hidden);
+        ui.controls_groupbox->setVisible(!controls_hidden);
     }
 
 }

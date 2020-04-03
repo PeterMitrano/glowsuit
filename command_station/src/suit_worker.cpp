@@ -53,8 +53,7 @@ void SuitWorker::start()
 void SuitWorker::xbee_read(Data const packet)
 {
     std::scoped_lock lock{new_packet_mutex};
-    latest_packet = packet;
-    new_packet = true;
+    packet_queue.push_back(packet);
 }
 
 void SuitWorker::digitalWrite(unsigned long pin, bool on)
@@ -98,26 +97,22 @@ Data SuitWorker::readPacket(bool const blocking)
 
             {
                 std::scoped_lock lock{new_packet_mutex};
-                if (new_packet)
+                if (not packet_queue.empty())
                 {
-                    new_packet = false;
                     // copy the latest data, and reset it
-                    auto latest_packet_copy{latest_packet};
-                    latest_packet = {};
-                    return latest_packet_copy;
+                    auto data_copy = packet_queue.front();
+                    packet_queue.pop_front();
+                    return data_copy;
                 }
             }
         }
     } else
     {
-
-        if (new_packet)
+        if (not packet_queue.empty())
         {
-            new_packet = false;
-            // copy the latest data, and reset it
-            auto latest_packet_copy{latest_packet};
-            latest_packet = {};
-            return latest_packet_copy;
+            auto data_copy = packet_queue.front();
+            packet_queue.pop_front();
+            return data_copy;
         } else
         {
             return {};

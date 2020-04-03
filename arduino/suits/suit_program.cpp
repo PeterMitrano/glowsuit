@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoSTL.h>
 #include <XBee.h>
 
 #include "suit_common.h"
@@ -83,24 +84,24 @@ void SuitProgram::loop()
 
     if (choreo_idx >= num_events)
     {
-        for (auto const pin : channel_to_pin)
-        {
-            digitalWrite(pin, LOW);
-        }
+        all_off();
         return;
     };
 
-    auto const next_onset_cs = pgm_read_word_near(choreo + (choreo_idx * 3));
-    if (choreo_time_cs >= next_onset_cs)
+    if (not paused)
     {
-        // display the current state
-        auto const current_state = pgm_read_byte_near(choreo + (choreo_idx * 3 + 2));
-        size_t bit_idx = 0;
-        for (auto const pin : channel_to_pin)
+        auto const next_onset_cs = pgm_read_word_near(choreo + (choreo_idx * 3));
+        if (choreo_time_cs >= next_onset_cs)
         {
-            auto const channel_on = (bool) ((current_state >> bit_idx) & 0x01);
-            digitalWrite(pin, channel_on ? HIGH : LOW);
-            ++bit_idx;
+            // display the current state
+            auto const current_state = pgm_read_byte_near(choreo + (choreo_idx * 3 + 2));
+            size_t bit_idx = 0;
+            for (auto const pin : channel_to_pin)
+            {
+                auto const channel_on = (bool) ((current_state >> bit_idx) & 0x01);
+                digitalWrite(pin, channel_on ? HIGH : LOW);
+                ++bit_idx;
+            }
         }
     }
 
@@ -119,15 +120,19 @@ void SuitProgram::handle_packets()
         response.getRx16Response(rx16);
 
         auto const suit_command = response_to_suit_command(rx16.getData(), rx16.getDataLength());
-        update_time(suit_command);
         switch (suit_command.type)
         {
             case CommandType::Time:
                 update_time(suit_command);
                 break;
             case CommandType::Pause:
+                all_off();
+                paused = true;
                 break;
             case CommandType::Resume:
+                all_off();
+                paused = false;
+                std::cout << "resume\n";
                 break;
             case CommandType::State:
                 break;
@@ -142,4 +147,20 @@ void SuitProgram::update_time(SuitCommand const &cmd)
     auto const current_global_time_ms = from_bytes<int32_t>(cmd.data);
     auto const now = millis_signed();
     time_offset_ms = now - current_global_time_ms - transmission_delay_ms;
+}
+
+void SuitProgram::all_off()
+{
+    for (auto const pin : channel_to_pin)
+    {
+        digitalWrite(pin, LOW);
+    }
+}
+
+void SuitProgram::all_on()
+{
+    for (auto const pin : channel_to_pin)
+    {
+        digitalWrite(pin, HIGH);
+    }
 }

@@ -20,7 +20,12 @@ public:
 
     void update_time(SuitCommand const &cmd);
 
+    void all_on();
+
+    void all_off();
+
 private:
+    bool paused{false};
     XBee xbee;
     int32_t time_offset_ms{0};
     uint8_t suit_number{0};
