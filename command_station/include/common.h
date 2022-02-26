@@ -46,7 +46,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial);
 
 void print_packet(std::vector<uint8_t> const &packet);
 
-constexpr std::size_t num_suits = 1;
+constexpr std::size_t num_suits = 5;
 constexpr int midi_note_offset = 60;
 constexpr int baud_rate = 57600;
 

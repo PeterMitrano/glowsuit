@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pathlib
 from bitarray import bitarray
 import argparse
@@ -24,7 +25,7 @@ def main():
 
     midifile = mido.MidiFile(args.midi_file)
 
-    num_suits = 6
+    num_suits = 5
     num_channels = 8
 
     # A binary string representing the state
@@ -63,10 +64,6 @@ def main():
 
             new_event = (int_time_in_centiseconds, states[suit_number].copy())
             choreo_by_suit[suit_number].append(new_event)
-
-    for time, state in choreo_by_suit[0]:
-        print(time, state)
-    return
 
     # Write header files for the individual suits
     # convert into one long byte string
