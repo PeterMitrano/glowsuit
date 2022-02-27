@@ -20,7 +20,6 @@
 #include <live_midi_input.h>
 #include <serial/serial.h>
 #include <visualizer.h>
-#include <suit_worker.h>
 #include <suit_common.h>
 
 std::optional<json> load_suit_description();
@@ -82,10 +81,6 @@ public slots:
 
     void any_event();
 
-    void all_on_clicked();
-
-    void all_off_clicked();
-
 signals:
 
     void play();
@@ -101,7 +96,6 @@ signals:
 public:
     Visualizer *visualizer{nullptr};
     LiveMidiWorker *live_midi_worker{nullptr};
-    std::vector<std::shared_ptr<SuitWorker>> suit_workers;
     std::vector<QThread *> suit_threads;
     QString music_filename;
     QString midi_filename;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>633</width>
+    <width>637</width>
     <height>323</height>
    </rect>
   </property>
@@ -205,35 +205,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QPushButton" name="all_off_button">
-              <property name="text">
-               <string>All Off</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="all_on_button">
-              <property name="text">
-               <string>All On</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
+           <layout class="QHBoxLayout" name="horizontalLayout_2"/>
           </item>
           <item>
            <widget class="QCheckBox" name="user_visualizer_checkbox">
@@ -587,7 +559,7 @@ color: #000000;
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>120</width>
+                  <width>160</width>
                   <height>0</height>
                  </size>
                 </property>
@@ -674,8 +646,6 @@ color: #000000;
  <tabstops>
   <tabstop>xbee_port_combobox</tabstop>
   <tabstop>octave_spinbox</tabstop>
-  <tabstop>all_off_button</tabstop>
-  <tabstop>all_on_button</tabstop>
   <tabstop>front_button</tabstop>
   <tabstop>back_button</tabstop>
   <tabstop>scale_spinbox</tabstop>

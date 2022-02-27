@@ -11,7 +11,6 @@
 
 #include <common.h>
 #include <main_widget.h>
-#include <suit_dispatcher.h>
 
 MainWidget::MainWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
@@ -61,10 +60,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent) {
           visualizer, &Visualizer::viz_scale_changed);
   connect(ui.select_music_file_button, &QPushButton::clicked, this,
           &MainWidget::music_file_button_clicked);
-  connect(ui.all_on_button, &QPushButton::clicked, this,
-          &MainWidget::all_on_clicked);
-  connect(ui.all_off_button, &QPushButton::clicked, this,
-          &MainWidget::all_off_clicked);
   connect(ui.live_checkbox, &QCheckBox::stateChanged, this,
           &MainWidget::live_midi_changed);
   connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged),
@@ -85,25 +80,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent) {
   connect(live_midi_worker, &LiveMidiWorker::any_event, this,
           &MainWidget::any_event);
   live_midi_thread.start();
-
-//  for (auto suit_idx{0u}; suit_idx < num_suits; ++suit_idx) {
-//    auto suit_worker = std::make_shared<SuitWorker>(suit_idx);
-//    auto *suit_thread = new QThread();
-//    suit_worker->moveToThread(suit_thread);
-//    connect(suit_thread, &QThread::started, suit_worker.get(),
-//            &SuitWorker::start);
-//    connect(suit_worker.get(), &SuitWorker::my_finished, suit_thread,
-//            &QThread::quit);
-//    connect(suit_worker.get(), &SuitWorker::midi_event, visualizer,
-//            &Visualizer::on_midi_file_event);
-//    connect(this, &MainWidget::software_suits_xbee_write, suit_worker.get(),
-//            &SuitWorker::xbee_read);
-//
-//    suit_workers.push_back(suit_worker);
-//    suit_threads.push_back(suit_thread);
-//    SuitDispatcher::registerSuit(suit_idx, suit_worker);
-//    suit_thread->start();
-//  }
 
   connect(this, &MainWidget::gui_midi_event, visualizer,
           &Visualizer::generic_on_midi_event);
@@ -147,7 +123,6 @@ MainWidget::~MainWidget() {
 
   // delete pointers that have no parents
   delete live_midi_worker;
-  suit_workers.clear();
 }
 
 void MainWidget::music_file_button_clicked() {
@@ -387,12 +362,6 @@ void MainWidget::blink_midi_indicator() {
   QTimer::singleShot(50, ui.midi_indicator_button,
                      [&]() { ui.midi_indicator_button->setEnabled(false); });
 }
-
-void MainWidget::all_on_clicked() {
-  // TODO: implement this
-}
-
-void MainWidget::all_off_clicked() {}
 
 void MainWidget::keyReleaseEvent(QKeyEvent *event) {
   auto const key = event->key();

@@ -1,5 +1,4 @@
 #include <XBee.h>
-#include <suit_dispatcher.h>
 
 Rx16Response::Rx16Response(Data const &data_and_length)
 {
@@ -41,18 +40,6 @@ XBeeResponse::XBeeResponse(Data const &data_and_length) : latest_response(data_a
 
 void XBee::setSerial(MockSerial) const
 {}
-
-void XBee::readPacketUntilAvailable()
-{
-    auto const latest_data = SuitDispatcher::readPacket(true);
-    latest_response = XBeeResponse{latest_data};
-}
-
-void XBee::readPacket()
-{
-    auto const latest_data = SuitDispatcher::readPacket(false);
-    latest_response = XBeeResponse{latest_data};
-}
 
 XBeeResponse XBee::getResponse() const
 {
