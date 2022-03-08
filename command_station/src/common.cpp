@@ -62,7 +62,7 @@ std::optional<Packet> read_packet(serial::Serial *xbee_serial)
     auto bytes_read = xbee_serial->read(data, 1);
 
     // check if a new packet is available
-    if (bytes_read != 1 or data[0] != 0x7E)
+    if (bytes_read != 1 || data[0] != 0x7E)
     {
         return {};
     }

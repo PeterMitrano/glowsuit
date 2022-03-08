@@ -1,11 +1,11 @@
 #include <iostream>
 #include <chrono>
 #include <Arduino.h>
-#include <suit_dispatcher.h>
+#include <suit_dispatcher.h> 
 
 void delay(unsigned long const dt_ms)
 {
-    usleep(dt_ms * 1000UL);
+    std::this_thread::sleep_for(std::chrono::milliseconds(dt_ms));
 }
 
 void digitalWrite(unsigned long pin, bool on)
@@ -20,12 +20,12 @@ unsigned long millis()
 
 uint8_t pgm_read_byte_near(uint8_t const *address)
 {
-    SuitDispatcher::pgm_read_byte_near(address);
+    return SuitDispatcher::pgm_read_byte_near(address);
 }
 
 uint16_t pgm_read_word_near(uint8_t const *address)
 {
-    SuitDispatcher::pgm_read_word_near(address);
+    return SuitDispatcher::pgm_read_word_near(address);
 }
 
 void pinMode(int, int)

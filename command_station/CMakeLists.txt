@@ -15,16 +15,19 @@ if (WIN32)
 endif ()
 
 file(GLOB midi_src src/midi/*.cpp)
+set(MIDI_LIBS)
 if (WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     add_library(midi STATIC ${midi_src})
     target_compile_definitions(midi PUBLIC __WINDOWS_MM__)
+    list(APPEND MIDI_LIBS winmm)
 elseif (UNIX AND NOT APPLE)
     add_library(midi STATIC ${midi_src})
-    target_link_libraries(midi PUBLIC pthread asound)
+    list(APPEND MIDI_LIBS pthread asound)
     target_compile_definitions(midi PUBLIC __LINUX_ALSA__)
 elseif (APPLE)
     add_library(midi STATIC ${midi_src})
-    target_link_libraries(midi PUBLIC
+    list(APPEND MIDI_LIBS 
             "-framework CoreServices"
             "-framework CoreAudio"
             "-framework CoreMidi"
@@ -33,8 +36,9 @@ elseif (APPLE)
             ${FOUNDATION_LIBRARY})
     target_compile_definitions(midi PUBLIC __MACOSX_CORE__)
 endif ()
+
 target_include_directories(midi PUBLIC include)
-target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia)
+target_link_libraries(midi PUBLIC Qt5::Core Qt5::Widgets Qt5::Multimedia ${MIDI_LIBS})
 
 set(command_station_src
         ../arduino/suits/suit_program.cpp

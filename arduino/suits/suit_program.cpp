@@ -88,7 +88,7 @@ void SuitProgram::loop()
         return;
     };
 
-    if (not paused)
+    if (!paused)
     {
         auto const next_onset_cs = pgm_read_word_near(choreo + (choreo_idx * 3));
         if (choreo_time_cs >= next_onset_cs)
@@ -114,7 +114,7 @@ void SuitProgram::handle_packets()
     auto response = xbee.getResponse();
     auto const available = response.isAvailable();
     auto const api_id = response.getApiId();
-    if (available and api_id == RX_16_RESPONSE)
+    if (available && api_id == RX_16_RESPONSE)
     {
         Rx16Response rx16;
         response.getRx16Response(rx16);

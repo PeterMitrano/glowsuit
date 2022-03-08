@@ -26,7 +26,7 @@ void SuitWorker::start()
 
     //TODO: support rebooting
     auto done{false};
-    while (not done)
+    while (!done)
     {
         start_time = std::chrono::high_resolution_clock::now();
         suit_program.setup();
@@ -97,7 +97,7 @@ Data SuitWorker::readPacket(bool const blocking)
 
             {
                 std::scoped_lock lock{new_packet_mutex};
-                if (not packet_queue.empty())
+                if (!packet_queue.empty())
                 {
                     // copy the latest data, and reset it
                     auto data_copy = packet_queue.front();
@@ -108,7 +108,7 @@ Data SuitWorker::readPacket(bool const blocking)
         }
     } else
     {
-        if (not packet_queue.empty())
+        if (!packet_queue.empty())
         {
             auto data_copy = packet_queue.front();
             packet_queue.pop_front();
