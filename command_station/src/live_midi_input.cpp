@@ -52,7 +52,7 @@ void LiveMidiWorker::start_midi()
     while (true)
     {
         // tiny sleep to prevent eating CPU
-        QThread::msleep(1);
+        // QThread::msleep(1);
 
         if (QThread::currentThread()->isInterruptionRequested())
         {
@@ -62,7 +62,7 @@ void LiveMidiWorker::start_midi()
         // since this is an infinite loop, in order to receive Qt signals we need to call this manually
         thread()->eventDispatcher()->processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
 
-        // 0 means no message we ready
+        // 0 means no message  ready
         std::vector<unsigned char> message;
         if (midiin.getMessage(&message) == 0.0)
         {
@@ -104,13 +104,6 @@ void LiveMidiWorker::start_midi()
         {
             // just skip if it's not NOTE ON or NOTE OFF
             continue;
-        }
-
-        // transmit to suits
-        if (xbee_serial != nullptr)
-        {
-            auto const packet = make_packet(current_state);
-            xbee_serial->write(packet.data(), packet.size());
         }
     }
 }

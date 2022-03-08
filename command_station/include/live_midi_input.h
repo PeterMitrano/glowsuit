@@ -2,7 +2,6 @@
 
 #include <QObject>
 
-#include <serial/serial.h>
 #include <midi/MidiFile.h>
 #include <common.h>
 #include <midi/RtMidi.h>
@@ -18,7 +17,6 @@ public:
 
     void show_midi_warning(QString message);
 
-    serial::Serial *xbee_serial{nullptr};
     QWidget *parent_widget;
 
 public slots:

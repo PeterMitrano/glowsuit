@@ -1,6 +1,5 @@
 #include <common.h>
 #include <main_widget.h>
-#include <suit_dispatcher.h>
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -49,7 +48,6 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent) {
   connect(ui.scale_spinbox, qOverload<double>(&QDoubleSpinBox::valueChanged), visualizer,
           &Visualizer::viz_scale_changed);
   connect(ui.select_music_file_button, &QPushButton::clicked, this, &MainWidget::music_file_button_clicked);
-  connect(ui.all_on_button, &QPushButton::clicked, this, &MainWidget::all_on_clicked);
   connect(ui.all_off_button, &QPushButton::clicked, this, &MainWidget::all_off_clicked);
   connect(ui.live_checkbox, &QCheckBox::stateChanged, this, &MainWidget::live_midi_changed);
   connect(ui.octave_spinbox, qOverload<int>(&QSpinBox::valueChanged), live_midi_worker,
@@ -117,6 +115,14 @@ void MainWidget::music_file_button_clicked() {
   }
 }
 
+void MainWidget::all_off_clicked() {
+  for (auto suit_idx{1u}; suit_idx <= num_suits; ++suit_idx) {
+    for (auto channel_idx{0u}; channel_idx < num_channels; ++channel_idx) {
+      emit gui_midi_event(suit_idx, midi_note_off, channel_idx);
+    }
+  }
+}
+
 QString select_music_file(QWidget* parent) {
   return QFileDialog::getOpenFileName(parent, "Open Music File", QString(), "*.wav");
 }
@@ -136,9 +142,6 @@ void MainWidget::xbee_port_changed(int index) {
   auto const port_name = ui.xbee_port_combobox->itemText(index).toStdString();
   try {
     xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(50));
-
-    // TODO: is this an error? possible data race
-    live_midi_worker->xbee_serial = xbee_serial;
   } catch (std::exception&) {
   }
 }
@@ -157,7 +160,6 @@ void MainWidget::save_settings() {
   settings->setValue("files/midi", midi_filename);
   settings->setValue("gui/xbee_port", previously_selected_port_name);
   settings->setValue("gui/use_visualizer", visualizer->use_visualizer);
-  settings->setValue("gui/num_suits", ui.num_suits_spinbox->value());
 }
 
 void MainWidget::restore_settings() {
@@ -176,7 +178,6 @@ void MainWidget::restore_settings() {
   ui.user_visualizer_checkbox->setChecked(settings->value("gui/use_visualizer").toBool());
   controls_hidden = settings->value("gui/controls_hidden").toBool();
   ui.controls_groupbox->setVisible(!controls_hidden);
-  ui.num_suits_spinbox->setValue(settings->value("gui/num_suits").toInt());
 
   emit visualizer->viz_scale_changed(ui.scale_spinbox->value());
 
