@@ -1,18 +1,16 @@
 #pragma once
 
-#include <optional>
-#include <cstdint>
-#include <algorithm>
-#include <cstddef>
-#include <vector>
-#include <utility>
-#include <algorithm>
-
-#include <QMetaType>
-
 #include <byteset.h>
 #include <serial/serial.h>
 #include <suit_common.h>
+
+#include <QMetaType>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <utility>
+#include <vector>
 
 constexpr int BytesPerMessage = 6;
 
@@ -32,12 +30,11 @@ constexpr uint8_t TX_16{0x01};
 constexpr uint8_t RX_16{0x81};
 constexpr uint8_t TX_STATUS{0x89};
 
-struct Packet
-{
-    uint16_t source_address{0};
-    uint16_t dest_address{0};
-    uint8_t command_id{0};
-    std::vector<uint8_t> data;
+struct Packet {
+  uint16_t source_address{0};
+  uint16_t dest_address{0};
+  uint8_t command_id{0};
+  std::vector<uint8_t> data;
 };
 
 std::optional<Packet> data_to_packet(std::vector<uint8_t> const &data);
@@ -53,21 +50,18 @@ constexpr int baud_rate = 57600;
 constexpr int midi_note_off = 128;
 constexpr int midi_note_on = 144;
 
-template<typename T>
-std::vector<uint8_t> to_bytes(T t)
-{
-    std::vector<uint8_t> bytes;
-    for (auto i{0u}; i < sizeof(t); ++i)
-    {
-        uint8_t const byte = (t >> (i * 8)) & 0xFF;
-        bytes.emplace_back(byte);
-    }
-    std::reverse(bytes.begin(), bytes.end());
-    return bytes;
+template <typename T>
+std::vector<uint8_t> to_bytes(T t) {
+  std::vector<uint8_t> bytes;
+  for (auto i{0u}; i < sizeof(t); ++i) {
+    uint8_t const byte = (t >> (i * 8)) & 0xFF;
+    bytes.emplace_back(byte);
+  }
+  std::reverse(bytes.begin(), bytes.end());
+  return bytes;
 }
 
 Q_DECLARE_METATYPE(Data)
-
 
 std::ostream &operator<<(std::ostream &os, const SuitCommand &command);
 

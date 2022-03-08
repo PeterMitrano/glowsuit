@@ -66,8 +66,7 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent) {
   connect(live_midi_worker, &LiveMidiWorker::any_event, this, &MainWidget::any_event);
   live_midi_thread.start();
 
-  connect(this, &MainWidget::gui_midi_event, visualizer,
-          &Visualizer::generic_on_midi_event);
+  connect(this, &MainWidget::gui_midi_event, visualizer, &Visualizer::generic_on_midi_event);
 
   timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWidget::update_serial_port_list);
@@ -329,7 +328,7 @@ void MainWidget::blink_midi_indicator() {
   QTimer::singleShot(50, ui.midi_indicator_button, [&]() { ui.midi_indicator_button->setEnabled(false); });
 }
 
-void MainWidget::keyReleaseEvent(QKeyEvent *event) {
+void MainWidget::keyReleaseEvent(QKeyEvent* event) {
   auto const key = event->key();
   if (key == Qt::Key_H) {
     controls_hidden = !controls_hidden;
