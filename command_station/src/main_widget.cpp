@@ -135,10 +135,13 @@ void MainWidget::live_midi_changed(int state) {
 
 void MainWidget::xbee_port_changed(int index) {
   auto const port_name = ui.xbee_port_combobox->itemText(index).toStdString();
-  xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(50));
+  try {
+    xbee_serial = new serial::Serial(port_name, baud_rate, serial::Timeout::simpleTimeout(50));
 
-  // TODO: is this an error? possible data race
-  live_midi_worker->xbee_serial = xbee_serial;
+    // TODO: is this an error? possible data race
+    live_midi_worker->xbee_serial = xbee_serial;
+  } catch (std::exception&) {
+  }
 }
 
 void MainWidget::closeEvent(QCloseEvent* event) {
