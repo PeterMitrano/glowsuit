@@ -49,10 +49,11 @@ void LiveMidiWorker::start_midi()
     // Ignore sysex, timing, or active sensing messages.
     midiin.ignoreTypes(true, true, true);
 
+	std::vector<unsigned char> message;
     while (true)
     {
         // tiny sleep to prevent eating CPU
-        // QThread::msleep(1);
+        QThread::msleep(1);
 
         if (QThread::currentThread()->isInterruptionRequested())
         {
@@ -62,9 +63,9 @@ void LiveMidiWorker::start_midi()
         // since this is an infinite loop, in order to receive Qt signals we need to call this manually
         thread()->eventDispatcher()->processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
 
-        // 0 means no message  ready
-        std::vector<unsigned char> message;
-        if (midiin.getMessage(&message) == 0.0)
+        // 0 means no message ready
+        midiin.getMessage(&message);
+        if (message.size() == 0)
         {
             continue;
         }
