@@ -1,5 +1,8 @@
 project(command_station)
 
+set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Zi /Ob0 /Od /RTC1 ")
+set(CMAKE_CXX_FLAGS_RELEASE "/MT /Zi /Ob0 /Od /RTC1 ")
+
 find_package(Qt5 COMPONENTS Core Widgets Multimedia REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
