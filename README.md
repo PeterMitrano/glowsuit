@@ -1,3 +1,5 @@
+:warning: These instructions are for a previous version of the glowsuits, from ~2020. :warning:
+
 # Overview
 
 To write choreo, you'll need LMMS or Ableton (or any other DAW should work). The DAW will be responsible for playing the music and the MIDI which controls the suits. The DAW gives you a nice way to write the MIDI and line everything up with the music. The `command_station` is responsible for visualizing the choreo, and for sending it via XBee to the suits.
